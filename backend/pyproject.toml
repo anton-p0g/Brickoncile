@@ -1,0 +1,24 @@
+[project]
+name = "brickoncile-backend"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.140.0",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.14.2",
+    "python-multipart>=0.0.20",
+    "sqlmodel>=0.0.39",
+    "uvicorn[standard]>=0.51.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
