@@ -19,15 +19,25 @@ export function usePartSearch(query: string, colorId?: number) {
   });
 }
 
+/**
+ * Just enough of a source to address it. Structural, so both a search result's `PartSourceOut` and
+ * a missing-parts contributor satisfy it without either page converting to the other's shape.
+ */
+export interface MarkFoundSource {
+  source_type: PartSourceOut["source_type"];
+  source_id: string;
+}
+
 interface MarkFromSearchVariables {
-  source: PartSourceOut;
+  source: MarkFoundSource;
   partNum: string;
   colorId: number;
   foundDelta: number;
 }
 
 /**
- * Mark a piece found straight from the search results.
+ * Mark a piece found straight from a list that spans inventories — the part search, or the missing
+ * parts grid.
  *
  * Without this the workflow breaks down exactly where it should pay off: you would look up the
  * brick, then navigate into the set and find the same part a second time to record it.

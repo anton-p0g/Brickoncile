@@ -207,7 +207,14 @@ export interface MarkMinifigPartResponse {
 export interface ContributorOut {
   source_type: "set" | "minifig_instance";
   source_id: string;
+  /** Single line, for the CSV and clipboard exports. The UI lays out name and reference instead. */
   label: string;
+  /** The set's or figure's own name. */
+  name: string;
+  /** The catalog id worth showing: a set number, or a fig number. Not source_id, which for a
+   *  minifig is an internal instance id. */
+  reference: string;
+  image_url: string | null;
   quantity: number;
 }
 
@@ -234,6 +241,9 @@ export interface SourceAggregateOut {
   source_type: "set" | "minifig_instance";
   source_id: string;
   label: string;
+  name: string;
+  /** See ContributorOut.reference. */
+  reference: string;
   image_url: string | null;
   items: SourceItemOut[];
   total_missing: number;

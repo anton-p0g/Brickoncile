@@ -9,6 +9,13 @@ class Contributor(BaseModel):
     source_type: Literal["set", "minifig_instance"]
     source_id: str
     label: str
+    """Single-line description, for the CSV and clipboard exports."""
+    name: str
+    """The set's or figure's own name, for a UI that lays the two out separately."""
+    reference: str
+    """The catalog id worth showing: a set number, or a fig number. Distinct from source_id, which
+    for a minifig is an internal instance id and means nothing to the owner."""
+    image_path: str | None
     quantity: int
 
 
@@ -35,6 +42,9 @@ class SourceAggregate(BaseModel):
     source_type: Literal["set", "minifig_instance"]
     source_id: str
     label: str
+    name: str
+    reference: str
+    """See Contributor.reference."""
     image_path: str | None
     items: list[SourceItem]
     total_missing: int
@@ -44,6 +54,8 @@ class _Contribution(BaseModel):
     source_type: Literal["set", "minifig_instance"]
     source_id: str
     label: str
+    name: str
+    reference: str
     image_path: str | None
     part_num: str
     color_id: int
@@ -86,6 +98,8 @@ class GetMissingSummaryUseCase:
                         source_type="set",
                         source_id=lego_set.set_num,
                         label=lego_set.set_num,
+                        name=lego_set.name,
+                        reference=lego_set.set_num,
                         image_path=lego_set.image_path,
                         part_num=part.part_num,
                         color_id=part.color_id,
@@ -107,6 +121,8 @@ class GetMissingSummaryUseCase:
                         source_type="minifig_instance",
                         source_id=instance.id,
                         label=f"{instance.fig_num} (from {instance.source_set_num or 'loose'})",
+                        name=instance.fig_name,
+                        reference=instance.fig_num,
                         image_path=instance.image_path,
                         part_num=part.part_num,
                         color_id=part.color_id,
@@ -137,6 +153,9 @@ class GetMissingSummaryUseCase:
                         source_type=i.source_type,
                         source_id=i.source_id,
                         label=i.label,
+                        name=i.name,
+                        reference=i.reference,
+                        image_path=i.image_path,
                         quantity=i.quantity_missing,
                     )
                     for i in items
@@ -157,6 +176,8 @@ class GetMissingSummaryUseCase:
                 source_type=items[0].source_type,
                 source_id=source_id,
                 label=items[0].label,
+                name=items[0].name,
+                reference=items[0].reference,
                 image_path=items[0].image_path,
                 items=[
                     SourceItem(

@@ -16,6 +16,8 @@ import {
   isSortOption,
   isStatusFilter,
   matchesStatusFilter,
+  SORT_LABELS,
+  SORT_OPTIONS,
   STATUS_FILTERS,
   type SortOption,
   type StatusFilter,
@@ -175,7 +177,9 @@ export function DashboardPage() {
           { label: "pieces missing", value: totalMissing },
           { label: "found overall", value: `${overallPercent}%` },
         ]}
-        sortControl={<SortSelect value={sort} onChange={setSort} />}
+        sortControl={
+          <SortSelect value={sort} onChange={setSort} options={SORT_OPTIONS} labels={SORT_LABELS} />
+        }
       />
       <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-1.5">
         <StatusFilterChips value={statusFilter} onChange={setStatusFilter} counts={statusCounts} />
@@ -186,7 +190,7 @@ export function DashboardPage() {
             onChange={(e) => setOwnedSearch(e.target.value)}
             placeholder="Filter your sets"
             aria-label="Filter your sets by number, name or theme"
-            className="w-36 rounded border border-gray-300 px-2 py-0.5 text-xs"
+            className="w-44 rounded border border-gray-300 px-2 py-0.5 text-xs"
           />
           <ThemeFilterSelect value={themeFilter} onChange={setThemeFilter} options={themeChoices} />
           <button

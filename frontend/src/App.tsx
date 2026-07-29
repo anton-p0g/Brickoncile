@@ -1,8 +1,8 @@
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { DashboardPage } from "./pages/DashboardPage";
 import { FindPartPage } from "./pages/FindPartPage";
 import { SetDetailPage } from "./pages/SetDetailPage";
-import { ShoppingListPage } from "./pages/ShoppingListPage";
+import { MissingPartsPage } from "./pages/MissingPartsPage";
 import { MinifigsOverviewPage } from "./pages/MinifigsOverviewPage";
 import { MinifigDetailPage } from "./pages/MinifigDetailPage";
 import { IdentifyMinifigPage } from "./pages/IdentifyMinifigPage";
@@ -26,15 +26,17 @@ function App() {
         <NavLink to="/identify" className={navLinkClass}>
           Identify
         </NavLink>
-        <NavLink to="/shopping-list" className={navLinkClass}>
-          Shopping List
+        <NavLink to="/missing" className={navLinkClass}>
+          Missing Parts
         </NavLink>
       </nav>
       <Routes>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/sets/:setNum" element={<SetDetailPage />} />
         <Route path="/find" element={<FindPartPage />} />
-        <Route path="/shopping-list" element={<ShoppingListPage />} />
+        <Route path="/missing" element={<MissingPartsPage />} />
+        {/* The screen was called "Shopping List" until it became a view of what is missing. */}
+        <Route path="/shopping-list" element={<Navigate to="/missing" replace />} />
         <Route path="/minifigs" element={<MinifigsOverviewPage />} />
         <Route path="/minifigs/:instanceId" element={<MinifigDetailPage />} />
         <Route path="/identify" element={<IdentifyMinifigPage />} />

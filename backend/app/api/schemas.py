@@ -510,6 +510,9 @@ class ContributorOut(BaseModel):
     source_type: Literal["set", "minifig_instance"]
     source_id: str
     label: str
+    name: str
+    reference: str
+    image_url: str | None
     quantity: int
 
 
@@ -532,7 +535,15 @@ class PartAggregateOut(BaseModel):
             image_url=to_image_url(aggregate.image_path),
             total_missing=aggregate.total_missing,
             contributors=[
-                ContributorOut(source_type=c.source_type, source_id=c.source_id, label=c.label, quantity=c.quantity)
+                ContributorOut(
+                    source_type=c.source_type,
+                    source_id=c.source_id,
+                    label=c.label,
+                    name=c.name,
+                    reference=c.reference,
+                    image_url=to_image_url(c.image_path),
+                    quantity=c.quantity,
+                )
                 for c in aggregate.contributors
             ],
         )
@@ -551,6 +562,8 @@ class SourceAggregateOut(BaseModel):
     source_type: Literal["set", "minifig_instance"]
     source_id: str
     label: str
+    name: str
+    reference: str
     image_url: str | None
     items: list[SourceItemOut]
     total_missing: int
@@ -561,6 +574,8 @@ class SourceAggregateOut(BaseModel):
             source_type=aggregate.source_type,
             source_id=aggregate.source_id,
             label=aggregate.label,
+            name=aggregate.name,
+            reference=aggregate.reference,
             image_url=to_image_url(aggregate.image_path),
             items=[
                 SourceItemOut(

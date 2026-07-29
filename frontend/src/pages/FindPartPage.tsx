@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import type { PartSearchResultOut, PartSourceOut } from "../api/types";
 import { StatusBadge } from "../components/StatusBadge";
 import { useMarkFoundFromSearch, usePartSearch } from "../hooks/usePartSearch";
+import { sourceHref } from "../lib/sources";
 
 /** Long enough that typing a part number does not fire a request per keystroke. */
 const SEARCH_DEBOUNCE_MS = 250;
@@ -14,12 +15,6 @@ function useDebounced<T>(value: T, delayMs: number): T {
     return () => window.clearTimeout(timer);
   }, [value, delayMs]);
   return debounced;
-}
-
-function sourceHref(source: PartSourceOut): string {
-  return source.source_type === "set"
-    ? `/sets/${encodeURIComponent(source.source_id)}`
-    : `/minifigs/${encodeURIComponent(source.source_id)}`;
 }
 
 interface SourceRowProps {
@@ -163,7 +158,10 @@ function ResultCard({
 }
 
 export function FindPartPage() {
-  const [query, setQuery] = useState("");
+  // "?q=" lets another screen hand a part over — the missing parts grid links here to answer
+  // "where else do I have this brick", which is this page's whole job.
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
   const [hideSatisfied, setHideSatisfied] = useState(false);
   const debouncedQuery = useDebounced(query, SEARCH_DEBOUNCE_MS);
   const { data: results = [], isFetching } = usePartSearch(debouncedQuery);
