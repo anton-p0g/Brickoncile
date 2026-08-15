@@ -58,6 +58,22 @@ class SqliteMissingHistoryRepository:
             for row in self.session.exec(stmt).all()
         ]
 
+    def list_all(self) -> list[MissingPartRecord]:
+        stmt = select(MissingHistoryTable).order_by(MissingHistoryTable.timestamp)
+        return [
+            MissingPartRecord(
+                entity_type=row.entity_type,
+                entity_id=row.entity_id,
+                part_num=row.part_num,
+                color_id=row.color_id,
+                action=row.action,
+                quantity_before=row.quantity_before,
+                quantity_after=row.quantity_after,
+                timestamp=_as_utc(row.timestamp),
+            )
+            for row in self.session.exec(stmt).all()
+        ]
+
     def delete_for_entity(self, entity_type: EntityType, entity_id: str) -> None:
         stmt = select(MissingHistoryTable).where(
             MissingHistoryTable.entity_type == entity_type,

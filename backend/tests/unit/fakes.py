@@ -397,6 +397,9 @@ class FakeMissingHistoryRepository:
             and (color_id is None or r.color_id == color_id)
         ]
 
+    def list_all(self) -> list[MissingPartRecord]:
+        return sorted(self.records, key=lambda r: r.timestamp)
+
     def delete_for_entity(self, entity_type: EntityType, entity_id: str) -> None:
         self.records = [
             r for r in self.records if not (r.entity_type == entity_type and r.entity_id == entity_id)

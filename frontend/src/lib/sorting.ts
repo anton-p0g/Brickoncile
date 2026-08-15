@@ -33,7 +33,7 @@ export interface Sortable {
 }
 
 /**
- * Comparator shared by the dashboard and the minifigures roster so both screens offer the same
+ * Comparator shared by the Sets page and the minifigures roster so both screens offer the same
  * ordering. `nameOf` supplies whichever label counts as the item's name.
  */
 export function compareBySort<T extends Sortable>(sort: SortOption, nameOf: (item: T) => string) {

@@ -8,7 +8,7 @@ interface SortSelectProps<T extends string> {
 /**
  * The sort control every grid screen uses, so they stay one control rather than three that drifted.
  *
- * Generic over the option set: the dashboard and the minifig roster sort by completion, while the
+ * Generic over the option set: the Sets page and the minifig roster sort by completion, while the
  * missing parts grid sorts by what is missing, and those lists have nothing in common but the look.
  */
 export function SortSelect<T extends string>({ value, onChange, options, labels }: SortSelectProps<T>) {

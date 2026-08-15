@@ -18,6 +18,7 @@ from app.application.use_cases.delete_minifig_instance import (
 from app.application.use_cases.delete_set import DeleteSetUseCase
 from app.application.use_cases.fetch_minifig import FetchMinifigUseCase
 from app.application.use_cases.fetch_set import FetchSetUseCase
+from app.application.use_cases.get_collection_stats import GetCollectionStatsUseCase
 from app.application.use_cases.get_missing_summary import GetMissingSummaryUseCase
 from app.application.use_cases.identify_minifig import IdentifyMinifigUseCase
 from app.application.use_cases.mark_minifig_instance_found import (
@@ -182,6 +183,16 @@ def get_update_sorting_state_use_case(
 
 def get_missing_summary_use_case(set_repo: SetRepoDep, instance_repo: InstanceRepoDep) -> GetMissingSummaryUseCase:
     return GetMissingSummaryUseCase(set_repo, instance_repo)
+
+
+def get_collection_stats_use_case(
+    set_repo: SetRepoDep,
+    instance_repo: InstanceRepoDep,
+    history_repo: HistoryRepoDep,
+    theme_repo: ThemeRepoDep,
+    missing_summary: Annotated[GetMissingSummaryUseCase, Depends(get_missing_summary_use_case)],
+) -> GetCollectionStatsUseCase:
+    return GetCollectionStatsUseCase(set_repo, instance_repo, history_repo, theme_repo, missing_summary)
 
 
 def get_search_parts_use_case(set_repo: SetRepoDep, instance_repo: InstanceRepoDep) -> SearchPartsUseCase:

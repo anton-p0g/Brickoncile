@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.routers import minifigs, missing_parts, parts, sets
+from app.api.routers import minifigs, missing_parts, parts, sets, stats
 from app.application.use_cases.sync_themes import SyncThemesUseCase
 from app.infrastructure.cache.local_image_cache import LocalImageCache
 from app.infrastructure.db.session import create_db_and_tables, engine
@@ -21,7 +21,7 @@ settings = get_settings()
 
 
 async def _prime_theme_cache(catalog: RebrickableClient) -> None:
-    """Pull the theme tree once so the dashboard can group sets by theme. Best-effort: an
+    """Pull the theme tree once so the Sets page can group sets by theme. Best-effort: an
     unreachable Rebrickable must not stop the app from starting, since everything else in it works
     offline against the local cache. The sets simply show up ungrouped until the next attempt."""
     try:
@@ -61,6 +61,7 @@ app.include_router(sets.router)
 app.include_router(minifigs.router)
 app.include_router(missing_parts.router)
 app.include_router(parts.router)
+app.include_router(stats.router)
 
 app.mount("/static/images", StaticFiles(directory=settings.images_dir, check_dir=False), name="images")
 

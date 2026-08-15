@@ -76,11 +76,11 @@ class FetchSetUseCase:
 
         # Everything past this point is a follow-up fetch against a set that is already stored, so
         # a failure is collected and reported rather than raised. Throwing here would report the
-        # set as failed while it sits on the dashboard, and would throw away the parts list —
+        # set as failed while it sits on the Sets page, and would throw away the parts list —
         # the expensive half of the fetch — over a detail that a resync can fill in later.
         warnings: list[str] = []
 
-        # The set carries only a theme_id; the dashboard groups by theme name, so make sure the
+        # The set carries only a theme_id; the Sets page groups by theme name, so make sure the
         # theme tree can resolve it before the set shows up ungrouped.
         try:
             await self.sync_themes.ensure_known(metadata.theme_id)

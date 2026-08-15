@@ -54,7 +54,7 @@ export function SetCard({ set, onRequestDelete }: SetCardProps) {
         <div className="text-sm font-bold">{set.set_num}</div>
         <div className="truncate text-xs text-gray-600">{set.name}</div>
         {set.root_theme_name && (
-          // The line the set belongs to, not its narrower sub-theme, matching how the dashboard groups.
+          // The line the set belongs to, not its narrower sub-theme, matching how the Sets page groups.
           <div className="truncate text-[11px] text-gray-400" title={set.theme_name ?? set.root_theme_name}>
             {set.root_theme_name}
           </div>

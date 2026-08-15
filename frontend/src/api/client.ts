@@ -4,6 +4,7 @@ import type {
   BulkAddMinifigsResponse,
   BulkAddSetsResponse,
   ChangeMinifigFigNumResponse,
+  CollectionStatsOut,
   GroupBy,
   HistoryEntryOut,
   IdentifyMinifigResponse,
@@ -248,4 +249,11 @@ export function getMissingSummary(groupBy: GroupBy) {
 
 export function exportMissingPartsCsvUrl(groupBy: GroupBy) {
   return `${API_BASE}/missing-parts/export.csv?group_by=${groupBy}`;
+}
+
+// ---- Dashboard ----
+
+/** Every dashboard section in one request, so the figures on screen always agree with each other. */
+export function getCollectionStats() {
+  return apiFetch<CollectionStatsOut>("/stats");
 }

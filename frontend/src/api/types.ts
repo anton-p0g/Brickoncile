@@ -300,3 +300,143 @@ export interface IdentifyMinifigResponse {
   recognitions: RecognitionOut[];
   matches: MinifigMatchOut[];
 }
+
+// ---- Dashboard statistics ----
+
+export interface StatsTotals {
+  sets: number;
+  minifig_instances: number;
+  quantity_required: number;
+  quantity_found: number;
+  /** Confirmed missing across finished inventories only. */
+  quantity_missing: number;
+  distinct_parts: number;
+  distinct_colors: number;
+}
+
+export interface StatusCount {
+  status: SortingStatus;
+  sets: number;
+  minifig_instances: number;
+}
+
+export interface SetProgress {
+  set_num: string;
+  name: string;
+  year: number | null;
+  image_url: string | null;
+  num_parts: number;
+  quantity_required: number;
+  quantity_found: number;
+  quantity_missing: number;
+  status: SortingStatus;
+  root_theme_name: string | null;
+}
+
+export interface ThemeStats {
+  /** Null for sets with no theme upstream, or whose theme is not cached yet. */
+  theme_name: string | null;
+  sets: number;
+  quantity_required: number;
+  quantity_found: number;
+  quantity_missing: number;
+}
+
+export interface ColorStats {
+  color_id: number;
+  color_name: string;
+  quantity_required: number;
+  quantity_found: number;
+  distinct_parts: number;
+}
+
+export interface CommonPartOut {
+  part_num: string;
+  color_id: number;
+  part_name: string;
+  color_name: string;
+  image_url: string | null;
+  /** How many owned sets call for this part/colour. */
+  set_count: number;
+  quantity_required: number;
+}
+
+export interface MissingPartStatOut {
+  part_num: string;
+  color_id: number;
+  part_name: string;
+  color_name: string;
+  image_url: string | null;
+  total_missing: number;
+  /** How many sets and minifigs are short of it. */
+  source_count: number;
+}
+
+export interface BurnUpPoint {
+  timestamp: string;
+  quantity_found: number;
+}
+
+export interface BurnUp {
+  /** Bucket width the curve was sampled at; the axis labels follow it. */
+  granularity: "hour" | "day";
+  points: BurnUpPoint[];
+}
+
+export interface HourBucket {
+  hour: number;
+  events: number;
+  pieces: number;
+}
+
+export interface DayBucket {
+  day: string;
+  events: number;
+  pieces: number;
+}
+
+export interface SessionStats {
+  count: number;
+  total_minutes: number;
+  longest_minutes: number;
+  pieces_per_session: number;
+  pieces_per_hour: number;
+}
+
+export interface YearBucket {
+  year: number | null;
+  sets: number;
+  quantity_required: number;
+}
+
+export interface DuplicatedFigOut {
+  fig_num: string;
+  fig_name: string;
+  image_url: string | null;
+  count: number;
+}
+
+export interface MinifigStatsOut {
+  total: number;
+  loose: number;
+  from_set: number;
+  distinct_figs: number;
+  complete: number;
+  most_duplicated: DuplicatedFigOut[];
+}
+
+export interface CollectionStatsOut {
+  totals: StatsTotals;
+  status_breakdown: StatusCount[];
+  sets: SetProgress[];
+  themes: ThemeStats[];
+  colors: ColorStats[];
+  common_parts: CommonPartOut[];
+  top_missing: MissingPartStatOut[];
+  burn_up: BurnUp;
+  activity_by_hour: HourBucket[];
+  activity_by_day: DayBucket[];
+  sessions: SessionStats;
+  years: YearBucket[];
+  minifigs: MinifigStatsOut;
+}

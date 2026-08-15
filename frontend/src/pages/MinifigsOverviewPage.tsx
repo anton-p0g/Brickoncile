@@ -104,7 +104,7 @@ function groupBySourceSet(instances: MinifigInstanceSummary[]): SetGroup[] {
 export function MinifigsOverviewPage() {
   const { data: allInstances = [], isLoading } = useMinifigInstances();
   const [searchParams, setSearchParams] = useSearchParams();
-  // Kept across navigation for the same reason as the dashboard's: opening a minifig and coming
+  // Kept across navigation for the same reason as the Sets page's: opening a minifig and coming
   // back should land on the list you left, not a re-sorted one.
   const [search, setSearch] = usePersistentState("minifigs.search", "", isString);
   const [statusFilter, setStatusFilter] = usePersistentState<StatusFilter>(

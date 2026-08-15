@@ -39,3 +39,17 @@ export const STATUS_CLASSES: Record<SortingStatus, string> = {
   sorted: "bg-red-600 text-white",
   complete: "bg-green-600 text-white",
 };
+
+/**
+ * The same four status colours as hex, for SVG charts, which cannot wear Tailwind classes.
+ *
+ * Red and green are close enough under red-green colour blindness that hue alone cannot separate
+ * them, so every chart using these pairs the colour with a label or a distinct marker shape and
+ * never asks the colour to carry the meaning by itself.
+ */
+export const STATUS_HEX: Record<SortingStatus, string> = {
+  not_started: "#9ca3af",
+  sorting: "#f59e0b",
+  sorted: "#dc2626",
+  complete: "#16a34a",
+};

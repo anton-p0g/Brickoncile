@@ -3,7 +3,7 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 /**
  * useState that survives leaving the page and coming back.
  *
- * Opening a set from the dashboard unmounts the dashboard, so a plain useState drops whatever
+ * Opening a set from the Sets page unmounts it, so a plain useState drops whatever
  * sort and filters were chosen — going back lands on a differently-ordered grid than the one
  * just left. Kept in sessionStorage, so it holds for the working session (and across a reload)
  * without a filter set days ago silently hiding sets on a fresh start.

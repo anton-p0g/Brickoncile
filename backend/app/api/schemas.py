@@ -7,6 +7,18 @@ from app.application.use_cases.add_minifig_by_reference import (
     AddMinifigByReferenceResult,
 )
 from app.application.use_cases.change_minifig_fig_num import ChangeMinifigFigNumResult
+from app.application.use_cases.get_collection_stats import (
+    BurnUp,
+    CollectionStats,
+    ColorStats,
+    DayBucket,
+    HourBucket,
+    SessionStats,
+    StatusCount,
+    ThemeStats,
+    Totals,
+    YearBucket,
+)
 from app.application.use_cases.get_missing_summary import PartAggregate, SourceAggregate
 from app.application.use_cases.identify_minifig import (
     IdentifyMinifigResult,
@@ -589,4 +601,145 @@ class SourceAggregateOut(BaseModel):
                 for i in aggregate.items
             ],
             total_missing=aggregate.total_missing,
+        )
+
+
+class SetProgressOut(BaseModel):
+    set_num: str
+    name: str
+    year: int | None
+    image_url: str | None
+    num_parts: int
+    quantity_required: int
+    quantity_found: int
+    quantity_missing: int
+    status: SortingStatus
+    root_theme_name: str | None
+
+
+class CommonPartOut(BaseModel):
+    part_num: str
+    color_id: int
+    part_name: str
+    color_name: str
+    image_url: str | None
+    set_count: int
+    quantity_required: int
+
+
+class MissingPartStatOut(BaseModel):
+    part_num: str
+    color_id: int
+    part_name: str
+    color_name: str
+    image_url: str | None
+    total_missing: int
+    source_count: int
+
+
+class DuplicatedFigOut(BaseModel):
+    fig_num: str
+    fig_name: str
+    image_url: str | None
+    count: int
+
+
+class MinifigStatsOut(BaseModel):
+    total: int
+    loose: int
+    from_set: int
+    distinct_figs: int
+    complete: int
+    most_duplicated: list[DuplicatedFigOut]
+
+
+class CollectionStatsOut(BaseModel):
+    """The dashboard payload.
+
+    Sections carrying a cached image are restated here to turn `image_path` into a servable URL,
+    the way every other response does. The rest are plain numbers with nothing to translate, so
+    they travel as the use case computed them rather than being retyped field for field.
+    """
+
+    totals: Totals
+    status_breakdown: list[StatusCount]
+    sets: list[SetProgressOut]
+    themes: list[ThemeStats]
+    colors: list[ColorStats]
+    common_parts: list[CommonPartOut]
+    top_missing: list[MissingPartStatOut]
+    burn_up: BurnUp
+    activity_by_hour: list[HourBucket]
+    activity_by_day: list[DayBucket]
+    sessions: SessionStats
+    years: list[YearBucket]
+    minifigs: MinifigStatsOut
+
+    @classmethod
+    def from_use_case(cls, stats: "CollectionStats") -> "CollectionStatsOut":
+        return cls(
+            totals=stats.totals,
+            status_breakdown=stats.status_breakdown,
+            sets=[
+                SetProgressOut(
+                    set_num=s.set_num,
+                    name=s.name,
+                    year=s.year,
+                    image_url=to_image_url(s.image_path),
+                    num_parts=s.num_parts,
+                    quantity_required=s.quantity_required,
+                    quantity_found=s.quantity_found,
+                    quantity_missing=s.quantity_missing,
+                    status=s.status,
+                    root_theme_name=s.root_theme_name,
+                )
+                for s in stats.sets
+            ],
+            themes=stats.themes,
+            colors=stats.colors,
+            common_parts=[
+                CommonPartOut(
+                    part_num=c.part_num,
+                    color_id=c.color_id,
+                    part_name=c.part_name,
+                    color_name=c.color_name,
+                    image_url=to_image_url(c.image_path),
+                    set_count=c.set_count,
+                    quantity_required=c.quantity_required,
+                )
+                for c in stats.common_parts
+            ],
+            top_missing=[
+                MissingPartStatOut(
+                    part_num=m.part_num,
+                    color_id=m.color_id,
+                    part_name=m.part_name,
+                    color_name=m.color_name,
+                    image_url=to_image_url(m.image_path),
+                    total_missing=m.total_missing,
+                    source_count=m.source_count,
+                )
+                for m in stats.top_missing
+            ],
+            burn_up=stats.burn_up,
+            activity_by_hour=stats.activity_by_hour,
+            activity_by_day=stats.activity_by_day,
+            sessions=stats.sessions,
+            years=stats.years,
+            minifigs=MinifigStatsOut(
+                total=stats.minifigs.total,
+                loose=stats.minifigs.loose,
+                from_set=stats.minifigs.from_set,
+                distinct_figs=stats.minifigs.distinct_figs,
+                complete=stats.minifigs.complete,
+                most_duplicated=[
+                    DuplicatedFigOut(
+                        fig_num=d.fig_num,
+                        fig_name=d.fig_name,
+                        image_url=to_image_url(d.image_path),
+                        count=d.count,
+                    )
+                    for d in stats.minifigs.most_duplicated
+                ],
+            ),
         )

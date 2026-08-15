@@ -1,5 +1,6 @@
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { DashboardPage } from "./pages/DashboardPage";
+import { SetsPage } from "./pages/SetsPage";
 import { FindPartPage } from "./pages/FindPartPage";
 import { SetDetailPage } from "./pages/SetDetailPage";
 import { MissingPartsPage } from "./pages/MissingPartsPage";
@@ -13,9 +14,10 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 function App() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      <nav className="border-b border-gray-200 bg-white px-4 flex gap-2">
-        <NavLink to="/" end className={navLinkClass}>
-          Dashboard
+      {/* Wraps rather than scrolls: on a phone every destination stays reachable without a swipe. */}
+      <nav className="flex flex-wrap border-b border-gray-200 bg-white px-4">
+        <NavLink to="/sets" className={navLinkClass}>
+          Sets
         </NavLink>
         <NavLink to="/find" className={navLinkClass}>
           Find a Brick
@@ -29,9 +31,15 @@ function App() {
         <NavLink to="/missing" className={navLinkClass}>
           Missing Parts
         </NavLink>
+        {/* Last in the row: the dashboard is somewhere to check in on rather than a step in the
+            sorting flow the other tabs form. */}
+        <NavLink to="/" end className={navLinkClass}>
+          Dashboard
+        </NavLink>
       </nav>
       <Routes>
         <Route path="/" element={<DashboardPage />} />
+        <Route path="/sets" element={<SetsPage />} />
         <Route path="/sets/:setNum" element={<SetDetailPage />} />
         <Route path="/find" element={<FindPartPage />} />
         <Route path="/missing" element={<MissingPartsPage />} />

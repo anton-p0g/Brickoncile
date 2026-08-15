@@ -9,7 +9,7 @@ from app.api.dependencies import (
     get_minifig_recognizer,
     get_session,
 )
-from app.api.routers import minifigs, missing_parts, sets
+from app.api.routers import minifigs, missing_parts, sets, stats
 from app.domain.repositories.dtos import (
     MinifigRecognitionDTO,
     MinifigRosterEntryDTO,
@@ -79,6 +79,7 @@ def client(tmp_path, catalog, recognizer):
     test_app.include_router(sets.router)
     test_app.include_router(minifigs.router)
     test_app.include_router(missing_parts.router)
+    test_app.include_router(stats.router)
     test_app.dependency_overrides[get_session] = override_get_session
     test_app.dependency_overrides[get_catalog_client] = lambda: catalog
     test_app.dependency_overrides[get_image_cache] = lambda: images
@@ -289,7 +290,7 @@ def test_bulk_add_normalizes_bare_set_numbers_and_flags_duplicates(client):
 
 def test_add_reports_a_set_that_landed_without_its_minifigs(client, catalog):
     """A roster failure must not read as "the set failed": the set is in the collection, and
-    saying otherwise sends you looking for a set that is already on the dashboard."""
+    saying otherwise sends you looking for a set that is already on the Sets page."""
     catalog.minifigs.clear()  # the roster still lists sw0001, but fetching it now raises
 
     resp = client.post("/api/sets", json={"set_num": "75192-1"}).json()
@@ -744,3 +745,32 @@ def test_bulk_manual_add_reports_every_line_and_keeps_the_good_ones(client, cata
     assert results[3]["fig_num"] == "fig-000068"
     assert results[3]["already_owned_count"] == 1
     assert len(client.get("/api/minifigs/instances").json()) == 2
+
+
+def test_stats_on_an_empty_collection(client):
+    """The dashboard is the first screen a new owner sees, so it has to render before anything
+    has been added rather than dividing by an empty collection."""
+    body = client.get("/api/stats").json()
+
+    assert body["totals"]["sets"] == 0
+    assert body["burn_up"]["points"] == []
+    assert body["sessions"]["count"] == 0
+    assert len(body["activity_by_hour"]) == 24
+
+
+def test_stats_follow_the_collection_and_its_finds(client):
+    client.post("/api/sets", json={"set_num": "75192-1"})
+
+    body = client.get("/api/stats").json()
+    assert body["totals"]["sets"] == 1
+    assert body["totals"]["quantity_required"] == 5  # 4 set pieces + 1 on the set's minifig
+    assert body["totals"]["quantity_found"] == 0
+    assert body["burn_up"]["points"] == []
+
+    client.post("/api/sets/75192-1/parts/3001/colors/0/found", json={"found_delta": 3})
+
+    body = client.get("/api/stats").json()
+    assert body["totals"]["quantity_found"] == 3
+    # The curve is replayed from the audit trail, so its last point must agree with the total.
+    assert body["burn_up"]["points"][-1]["quantity_found"] == 3
+    assert body["sessions"]["count"] == 1
