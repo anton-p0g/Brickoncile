@@ -1,0 +1,23 @@
+services:
+  brickoncile:
+    image: ghcr.io/anton-p0g/brickoncile:${BRICKONCILE_VERSION:-latest}
+    ports:
+      - "127.0.0.1:${BRICKONCILE_PORT:-8000}:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_PATH: /data/brickoncile.db
+      IMAGES_DIR: /data/images
+    volumes:
+      - ./backend/data:/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=2)"
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
