@@ -5,23 +5,48 @@
 
 Brickoncile is a self-hosted web app for inventorying a LEGO collection. Add a set, work through its parts, and record what you find. When the sort is finished, Brickoncile keeps a clear list of anything that is still missing.
 
-It is useful for checking second-hand sets, rebuilding sets from a mixed collection, sorting a childhood collection, or keeping track of loose minifigures. Everything is presented visually, so you can spend less time working from spreadsheets and part lists.
+It is useful for checking second-hand sets, rebuilding sets from a mixed collection, sorting a childhood collection (like me), or keeping track of loose minifigures. Everything is presented visually, so you can spend less time working from spreadsheets and part lists.
 
 ## Preview
 
-[![LEGO sets organized as a visual collection](docs/screenshots/sets-overview.png)](docs/screenshots/sets-overview.png)
+<p align="center">
+  <a href="docs/screenshots/sets-overview.png">
+    <img src="docs/screenshots/sets-overview.png" width="100%" alt="LEGO sets organized as a visual collection">
+  </a>
+</p>
 
-| Dashboard                                                                                                                                 | Sorting a set                                                                                                    |
-| ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| [![Brickoncile dashboard showing collection totals and sorting progress](docs/screenshots/dashboard.png)](docs/screenshots/dashboard.png) | [![Checking pieces in a LEGO set inventory](docs/screenshots/set-sorting.png)](docs/screenshots/set-sorting.png) |
+### Set sorting and collection progress
 
-| Missing pieces                                                                                                       | Missing pieces by set                                                                                             |
-| -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| [![Missing LEGO pieces grouped by part](docs/screenshots/missing-by-part.png)](docs/screenshots/missing-by-part.png) | [![Missing LEGO pieces grouped by set](docs/screenshots/missing-by-set.png)](docs/screenshots/missing-by-set.png) |
+<p align="center">
+  <a href="docs/screenshots/set-sorting.png">
+    <img src="docs/screenshots/set-sorting.png" width="49%" alt="Checking pieces in a LEGO set inventory">
+  </a>
+  <a href="docs/screenshots/dashboard.png">
+    <img src="docs/screenshots/dashboard.png" width="49%" alt="Brickoncile dashboard showing collection totals and sorting progress">
+  </a>
+</p>
 
-| Identifying a minifigure                                                                                                                            | Reviewing unmatched photos                                                                                                          |
-| --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| [![Matching a photographed minifigure against catalog entries](docs/screenshots/identify-minifigure.png)](docs/screenshots/identify-minifigure.png) | [![Reviewing minifigure photos that need another look](docs/screenshots/identify-review.png)](docs/screenshots/identify-review.png) |
+### Missing parts
+
+<p align="center">
+  <a href="docs/screenshots/missing-by-part.png">
+    <img src="docs/screenshots/missing-by-part.png" width="49%" alt="Missing LEGO pieces grouped by part">
+  </a>
+  <a href="docs/screenshots/missing-by-set.png">
+    <img src="docs/screenshots/missing-by-set.png" width="49%" alt="Missing LEGO pieces grouped by set">
+  </a>
+</p>
+
+### Minifigure identification
+
+<p align="center">
+  <a href="docs/screenshots/identify-minifigure.png">
+    <img src="docs/screenshots/identify-minifigure.png" width="49%" alt="Matching a photographed minifigure against catalog entries">
+  </a>
+  <a href="docs/screenshots/identify-review.png">
+    <img src="docs/screenshots/identify-review.png" width="49%" alt="Reviewing minifigure photos that need another look">
+  </a>
+</p>
 
 ## Features
 
