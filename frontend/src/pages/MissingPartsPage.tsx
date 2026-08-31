@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import type {
   ContributorOut,
   GroupBy,
@@ -140,7 +139,6 @@ export function MissingPartsPage() {
         a.part_num.toLowerCase().includes(query) ||
         a.part_name.toLowerCase().includes(query) ||
         a.color_name.toLowerCase().includes(query) ||
-        // A part is worth finding by the set that wants it, not only by its own name.
         a.contributors.some(
           (c) =>
             c.name.toLowerCase().includes(query) ||
@@ -333,7 +331,6 @@ export function MissingPartsPage() {
           value={colorFilter}
           onChange={setColorFilter}
         />
-        {/* Demoted deliberately: this screen is for finding pieces in the pile, not for ordering. */}
         <details className="relative ml-auto">
           <summary className="cursor-pointer list-none rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-600 hover:border-gray-500">
             Export
@@ -344,20 +341,6 @@ export function MissingPartsPage() {
           </div>
         </details>
       </div>
-
-      {/* Always shown, not only when the page is empty: "nothing missing" and "nothing counted yet"
-          look identical from the outside, and the difference is the whole meaning of the screen. */}
-      {stillSorting > 0 && (
-        <p className="border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-xs text-amber-900">
-          <span className="font-semibold">{stillSorting}</span>{" "}
-          {stillSorting === 1 ? "set is" : "sets are"} still being sorted, so
-          they don't appear here. Mark one &quot;Finish sorting&quot; to
-          categorize the parts as missing.{" "}
-          <Link to="/" className="underline hover:no-underline">
-            Review sets
-          </Link>
-        </p>
-      )}
 
       <div className="p-4">
         {isLoading ? (
