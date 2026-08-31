@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type {
   BulkAddMinifigResultItem,
@@ -17,7 +23,11 @@ import {
   useBulkAddMinifigsByReference,
   useMinifigInstances,
 } from "../hooks/useMinifigs";
-import { isBoolean, isString, usePersistentState } from "../hooks/usePersistentState";
+import {
+  isBoolean,
+  isString,
+  usePersistentState,
+} from "../hooks/usePersistentState";
 import { completionPercent } from "../lib/completion";
 import {
   compareBySort,
@@ -97,7 +107,8 @@ function groupBySourceSet(instances: MinifigInstanceSummary[]): SetGroup[] {
     if (instance.added_at < group.added_at) group.added_at = instance.added_at;
   }
 
-  for (const group of groups.values()) group.status = groupStatus(group.instances);
+  for (const group of groups.values())
+    group.status = groupStatus(group.instances);
   return Array.from(groups.values());
 }
 
@@ -106,18 +117,32 @@ export function MinifigsOverviewPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   // Kept across navigation for the same reason as the Sets page's: opening a minifig and coming
   // back should land on the list you left, not a re-sorted one.
-  const [search, setSearch] = usePersistentState("minifigs.search", "", isString);
+  const [search, setSearch] = usePersistentState(
+    "minifigs.search",
+    "",
+    isString,
+  );
   const [statusFilter, setStatusFilter] = usePersistentState<StatusFilter>(
     "minifigs.statusFilter",
     "all",
     isStatusFilter,
   );
-  const [sort, setSort] = usePersistentState<SortOption>("minifigs.sort", "least-complete", isSortOption);
-  const [looseOnly, setLooseOnly] = usePersistentState("minifigs.looseOnly", false, isBoolean);
+  const [sort, setSort] = usePersistentState<SortOption>(
+    "minifigs.sort",
+    "least-complete",
+    isSortOption,
+  );
+  const [looseOnly, setLooseOnly] = usePersistentState(
+    "minifigs.looseOnly",
+    false,
+    isBoolean,
+  );
   const [referenceInput, setReferenceInput] = useState("");
   const [bulkInput, setBulkInput] = useState("");
   const [showBulk, setShowBulk] = useState(false);
-  const [bulkResults, setBulkResults] = useState<BulkAddMinifigResultItem[] | null>(null);
+  const [bulkResults, setBulkResults] = useState<
+    BulkAddMinifigResultItem[] | null
+  >(null);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const addMinifig = useAddMinifigByReference();
   const bulkAddMinifigs = useBulkAddMinifigsByReference();
@@ -134,8 +159,11 @@ export function MinifigsOverviewPage() {
   // set link wins outright rather than intersecting to nothing.
   const showLooseOnly = looseOnly && !sourceSetFilter;
   const instances = useMemo(() => {
-    if (sourceSetFilter) return allInstances.filter((i) => i.source_set_num === sourceSetFilter);
-    return showLooseOnly ? allInstances.filter((i) => i.source_set_num === null) : allInstances;
+    if (sourceSetFilter)
+      return allInstances.filter((i) => i.source_set_num === sourceSetFilter);
+    return showLooseOnly
+      ? allInstances.filter((i) => i.source_set_num === null)
+      : allInstances;
   }, [allInstances, sourceSetFilter, showLooseOnly]);
   const filteredSetName = instances[0]?.source_set_name ?? null;
 
@@ -156,7 +184,8 @@ export function MinifigsOverviewPage() {
     const typed = referenceInput.trim();
     if (!typed) return;
     try {
-      const { instance, already_owned_count } = await addMinifig.mutateAsync(typed);
+      const { instance, already_owned_count } =
+        await addMinifig.mutateAsync(typed);
       setReferenceInput("");
       // One figure is small enough to report in a toast; the dialog is reserved for bulk runs.
       showToast(
@@ -167,7 +196,10 @@ export function MinifigsOverviewPage() {
       );
     } catch (err) {
       // The message says which part could not be read, so the typed text stays put to be corrected.
-      showToast("error", err instanceof Error ? err.message : "Could not add that minifigure.");
+      showToast(
+        "error",
+        err instanceof Error ? err.message : "Could not add that minifigure.",
+      );
     }
   }
 
@@ -191,7 +223,10 @@ export function MinifigsOverviewPage() {
       }
     } catch (err) {
       // The request itself failed, so there is no per-line report to show.
-      showToast("error", `Bulk add failed: ${err instanceof Error ? err.message : "unknown error"}`);
+      showToast(
+        "error",
+        `Bulk add failed: ${err instanceof Error ? err.message : "unknown error"}`,
+      );
     }
   }
 
@@ -224,18 +259,32 @@ export function MinifigsOverviewPage() {
     });
 
     // The same ordering applies to the groups and to the cards inside each one.
-    const compareInstances = compareBySort<MinifigInstanceSummary>(sort, (i) => i.fig_name);
-    const compareGroups = compareBySort<SetGroup>(sort, (g) => g.setName ?? g.setNum ?? "loose minifigures");
+    const compareInstances = compareBySort<MinifigInstanceSummary>(
+      sort,
+      (i) => i.fig_name,
+    );
+    const compareGroups = compareBySort<SetGroup>(
+      sort,
+      (g) => g.setName ?? g.setNum ?? "loose minifigures",
+    );
 
     const grouped = groupBySourceSet(matching);
     for (const group of grouped) group.instances.sort(compareInstances);
     return grouped.sort(compareGroups);
   }, [instances, statusFilter, search, sort]);
 
-  const notStartedCount = instances.filter((i) => i.status === "not_started").length;
+  const notStartedCount = instances.filter(
+    (i) => i.status === "not_started",
+  ).length;
   const totals = {
-    quantity_required_total: instances.reduce((sum, i) => sum + i.quantity_required_total, 0),
-    quantity_found_total: instances.reduce((sum, i) => sum + i.quantity_found_total, 0),
+    quantity_required_total: instances.reduce(
+      (sum, i) => sum + i.quantity_required_total,
+      0,
+    ),
+    quantity_found_total: instances.reduce(
+      (sum, i) => sum + i.quantity_found_total,
+      0,
+    ),
   };
 
   return (
@@ -247,11 +296,20 @@ export function MinifigsOverviewPage() {
           { label: "found overall", value: `${completionPercent(totals)}%` },
         ]}
         sortControl={
-          <SortSelect value={sort} onChange={setSort} options={SORT_OPTIONS} labels={SORT_LABELS} />
+          <SortSelect
+            value={sort}
+            onChange={setSort}
+            options={SORT_OPTIONS}
+            labels={SORT_LABELS}
+          />
         }
       />
       <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-1.5">
-        <StatusFilterChips value={statusFilter} onChange={setStatusFilter} counts={statusCounts} />
+        <StatusFilterChips
+          value={statusFilter}
+          onChange={setStatusFilter}
+          counts={statusCounts}
+        />
         {/* Hidden while a set is being shown: that view is by definition minifigs a set accounts
             for, so narrowing it to the ones no set accounts for could only empty it. */}
         {!sourceSetFilter && (
@@ -261,11 +319,19 @@ export function MinifigsOverviewPage() {
             onClick={() => setLooseOnly((v) => !v)}
             title="Show only minifigures no owned set accounts for"
             className={`rounded-full border px-2 py-0.5 text-xs ${
-              showLooseOnly ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 bg-white"
+              showLooseOnly
+                ? "border-gray-900 bg-gray-900 text-white"
+                : "border-gray-300 bg-white"
             }`}
           >
             Loose only
-            <span className={showLooseOnly ? "ml-1 text-gray-300" : "ml-1 text-gray-400"}>{looseCount}</span>
+            <span
+              className={
+                showLooseOnly ? "ml-1 text-gray-300" : "ml-1 text-gray-400"
+              }
+            >
+              {looseCount}
+            </span>
           </button>
         )}
         {/* Filters what is already here. Distinct from the box below, which adds new minifigures. */}
@@ -337,17 +403,6 @@ export function MinifigsOverviewPage() {
             </button>
           </div>
         )}
-
-        <p className="mt-2 text-xs text-gray-400">
-          A bare number is padded to the catalog's width, so <span className="font-mono">68</span>{" "}
-          resolves to <span className="font-mono">fig-000068</span>. Duplicates are allowed — owning two
-          of a figure is ordinary. BrickLink IDs like <span className="font-mono">sw0001</span> cannot be
-          converted, because Rebrickable publishes no mapping between the two catalogues;{" "}
-          <Link to="/identify" className="underline hover:no-underline">
-            identify from a photo
-          </Link>{" "}
-          instead, or find the figure on rebrickable.com and paste that link.
-        </p>
       </div>
 
       {isLoading ? (
@@ -361,7 +416,9 @@ export function MinifigsOverviewPage() {
               : "No minifigs yet — add a set that includes some."}
         </p>
       ) : groups.length === 0 ? (
-        <p className="px-4 text-sm text-gray-500">No minifigs match the current filters.</p>
+        <p className="px-4 text-sm text-gray-500">
+          No minifigs match the current filters.
+        </p>
       ) : (
         <div className="flex flex-col gap-5 px-4 pb-4">
           {groups.map((group) => (
@@ -381,15 +438,22 @@ export function MinifigsOverviewPage() {
                   </Link>
                 )}
                 <span className="font-mono text-xs text-gray-400">
-                  {group.instances.length} minifig{group.instances.length === 1 ? "" : "s"}
+                  {group.instances.length} minifig
+                  {group.instances.length === 1 ? "" : "s"}
                 </span>
-                <span className="font-mono text-xs text-gray-500">{completionPercent(group)}% found</span>
+                <span className="font-mono text-xs text-gray-500">
+                  {completionPercent(group)}% found
+                </span>
                 {group.quantity_missing_total > 0 && (
                   <span className="rounded bg-red-600 px-1.5 py-0.5 font-mono text-[11px] font-bold text-white">
                     {group.quantity_missing_total} missing
                   </span>
                 )}
-                <CompletionBar entity={group} status={group.status} className="w-full max-w-[14rem]" />
+                <CompletionBar
+                  entity={group}
+                  status={group.status}
+                  className="w-full max-w-[14rem]"
+                />
               </div>
               <div className="flex flex-wrap gap-3">
                 {group.instances.map((instance) => (
@@ -406,7 +470,10 @@ export function MinifigsOverviewPage() {
       )}
 
       {bulkResults && (
-        <AddMinifigsResultDialog results={bulkResults} onClose={() => setBulkResults(null)} />
+        <AddMinifigsResultDialog
+          results={bulkResults}
+          onClose={() => setBulkResults(null)}
+        />
       )}
       {toast && <Toast toast={toast} onDismiss={() => setToast(null)} />}
     </div>

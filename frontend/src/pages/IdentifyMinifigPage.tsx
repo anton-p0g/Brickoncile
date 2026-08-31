@@ -461,9 +461,7 @@ export function IdentifyMinifigPage() {
       <div className="border-b border-gray-200 bg-gray-50 p-4">
         <h1 className="text-lg font-bold">Identify a minifigure</h1>
         <p className="mt-0.5 text-sm text-gray-600">
-          Photograph a minifigure to find out what it is. Nothing is added until
-          you confirm a match, because the picture recogniser and the parts
-          catalog name figures differently.
+          Photograph a minifigure to find out what it is.
         </p>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -524,14 +522,9 @@ export function IdentifyMinifigPage() {
         <div className="p-4 text-sm text-gray-500">
           <p>
             No photo yet. A plain background and the whole figure in frame give
-            the best result — the same shot works whether it came off a phone or
-            out of a folder.
+            the best result.
           </p>
-          <p className="mt-2">
-            Pick several at once to work through a pile: each is identified in
-            turn, the next is looked up while you decide on the current one, and
-            you confirm or skip one at a time.
-          </p>
+          <p className="mt-2">Pick several at once to work through a pile.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4 p-4 lg:flex-row">

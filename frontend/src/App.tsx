@@ -33,12 +33,12 @@ function App() {
         </NavLink>
         {/* Last in the row: the dashboard is somewhere to check in on rather than a step in the
             sorting flow the other tabs form. */}
-        <NavLink to="/" end className={navLinkClass}>
+        <NavLink to="/dashboard" className={navLinkClass}>
           Dashboard
         </NavLink>
       </nav>
       <Routes>
-        <Route path="/" element={<DashboardPage />} />
+        <Route path="/" element={<Navigate to="/sets" replace />} />
         <Route path="/sets" element={<SetsPage />} />
         <Route path="/sets/:setNum" element={<SetDetailPage />} />
         <Route path="/find" element={<FindPartPage />} />
@@ -48,6 +48,7 @@ function App() {
         <Route path="/minifigs" element={<MinifigsOverviewPage />} />
         <Route path="/minifigs/:instanceId" element={<MinifigDetailPage />} />
         <Route path="/identify" element={<IdentifyMinifigPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
     </div>
   );

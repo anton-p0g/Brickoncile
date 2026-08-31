@@ -9,9 +9,6 @@ class AddLooseMinifigUseCase:
     Deliberately the same MinifigInstance every set roster produces, with no source set rather than
     a special kind of record: a loose figure is sorted, resynced and searched exactly like one that
     arrived in a box, and the only thing not known about it is where it came from.
-
-    Duplicates are allowed. Owning two of the same figure is ordinary, and each is sorted on its own,
-    so a repeated add creates a second instance instead of being treated as a mistake.
     """
 
     def __init__(self, instance_repo: MinifigInstanceRepository, fetch_minifig: FetchMinifigUseCase):

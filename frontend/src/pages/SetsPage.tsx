@@ -49,7 +49,7 @@ export function SetsPage() {
   const [bulkResults, setBulkResults] = useState<BulkAddResultItem[] | null>(null);
   // Sort and filters persist: opening a set unmounts this page, and coming back to a re-sorted
   // grid loses your place in a collection you are working through one set at a time.
-  const [sort, setSort] = usePersistentState<SortOption>("sets.sort", "least-complete", isSortOption);
+  const [sort, setSort] = usePersistentState<SortOption>("sets.sort", "most-complete", isSortOption);
   const [statusFilter, setStatusFilter] = usePersistentState<StatusFilter>(
     "sets.statusFilter",
     "all",
