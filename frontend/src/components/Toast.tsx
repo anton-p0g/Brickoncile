@@ -42,17 +42,24 @@ export function Toast({ toast, onDismiss }: ToastProps) {
       className="fixed inset-x-0 bottom-3 z-50 flex justify-center px-3 print:hidden"
     >
       <div
-        className={`flex max-w-lg items-start gap-2.5 rounded border-l-4 bg-white py-2 pr-1.5 pl-3 text-sm shadow-lg ${tone.border}`}
+        className={`flex max-w-lg items-center gap-2.5 rounded border-l-4 bg-white py-2 pr-1.5 pl-3 text-sm shadow-lg ${tone.border}`}
       >
-        <span aria-hidden="true" className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`} />
-        <span className="py-0.5">{toast.text}</span>
+        <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`} />
+        <span className="min-w-0 py-0.5">{toast.text}</span>
         <button
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="shrink-0 px-1 text-gray-400 hover:text-gray-900"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-gray-400 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300"
         >
-          &#10005;
+          <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none">
+            <path
+              d="M4 4l12 12M16 4 4 16"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
       </div>
     </div>
