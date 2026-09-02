@@ -8,8 +8,10 @@ export default defineConfig({
   server: {
     host: true,
     proxy: {
-      '/api': 'http://localhost:8000',
-      '/static': 'http://localhost:8000',
+      // Match Uvicorn's default IPv4 listener. On some macOS setups `localhost` resolves to ::1,
+      // which can reach a different/stale process while 127.0.0.1:8000 is the active backend.
+      '/api': 'http://127.0.0.1:8000',
+      '/static': 'http://127.0.0.1:8000',
     },
   },
 })

@@ -26,9 +26,7 @@ class Repos:
     images: FakeImageCache
 
     def use_case(self) -> DeleteMinifigInstanceUseCase:
-        return DeleteMinifigInstanceUseCase(
-            self.instances, self.minifigs, self.history, self.sets, self.images
-        )
+        return DeleteMinifigInstanceUseCase(self.instances, self.minifigs, self.history, self.sets)
 
 
 def make_part(part_num: str, color_id: int, image_path: str | None) -> Part:
@@ -125,15 +123,14 @@ def test_delete_refuses_an_instance_that_came_from_a_set(repos):
     assert repos.instances.get(instance.id) is not None
 
 
-def test_delete_removes_the_images_only_this_instance_held(repos):
+def test_delete_retains_images_for_the_shared_cross_collection_cache(repos):
     instance = add_loose(
         repos, "fig-003769", [make_part("3626", 14, "parts/3626_14.jpg")], "minifigs/fig-003769.jpg"
     )
 
     repos.use_case().execute(instance.id)
 
-    assert "minifigs/fig-003769.jpg" in repos.images.deleted
-    assert "parts/3626_14.jpg" in repos.images.deleted
+    assert repos.images.deleted == []
 
 
 def test_delete_keeps_a_part_image_an_owned_set_still_uses(repos):

@@ -302,6 +302,7 @@ export function MissingPartsPage() {
   return (
     <div>
       <StatsBar
+        isLoading={isLoading}
         stats={[
           { label: "pieces missing", value: totals.pieces },
           { label: "kinds of piece", value: totals.lines },

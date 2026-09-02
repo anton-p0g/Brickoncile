@@ -24,7 +24,7 @@ class Repos:
     images: FakeImageCache
 
     def use_case(self) -> DeleteSetUseCase:
-        return DeleteSetUseCase(self.sets, self.instances, self.minifigs, self.history, self.images)
+        return DeleteSetUseCase(self.sets, self.instances, self.minifigs, self.history)
 
 
 def make_history(entity_type: str, entity_id: str) -> MissingPartRecord:
@@ -137,14 +137,13 @@ def test_delete_leaves_other_instances_of_the_same_fig_from_another_set(repos):
     assert repos.instances.get(from_doomed.id) is None
 
 
-# ---- cached image cleanup ----
+# ---- shared image cache ----
 
 
-def test_delete_removes_the_sets_own_image_and_its_exclusive_part_images(repos):
+def test_delete_retains_images_for_the_shared_cross_collection_cache(repos):
     repos.use_case().execute("75192-1")
 
-    assert "sets/75192-1.jpg" in repos.images.deleted
-    assert "parts/9999_5.jpg" in repos.images.deleted
+    assert repos.images.deleted == []
 
 
 def test_delete_keeps_part_images_another_set_still_uses(repos):
@@ -172,8 +171,7 @@ def test_delete_prunes_orphaned_minifig_catalog_and_its_images(repos):
     repos.use_case().execute("75192-1")
 
     assert repos.minifigs.get("sw0001") is None
-    assert "minifigs/sw0001.jpg" in repos.images.deleted
-    assert "parts/3626_14.jpg" in repos.images.deleted
+    assert repos.images.deleted == []
 
 
 def test_delete_keeps_minifig_catalog_still_owned_through_another_set(repos):

@@ -265,7 +265,7 @@ def delete_instance(
     instance_id: str,
     delete: Annotated[DeleteMinifigInstanceUseCase, Depends(get_delete_minifig_instance_use_case)],
 ) -> None:
-    """Remove a loose minifig and the images only it was keeping alive."""
+    """Remove a loose minifig while retaining images in the shared collection cache."""
     try:
         delete.execute(instance_id)
     except EntityNotFoundError as exc:

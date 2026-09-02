@@ -319,7 +319,7 @@ export function useChangeMinifigFigNum() {
   });
 }
 
-/** Removes a loose minifig, its part rows and the cached images nothing else references. */
+/** Removes a loose minifig and its rows. Shared cached images are retained for other collections. */
 export function useDeleteMinifigInstance() {
   const queryClient = useQueryClient();
   return useMutation({

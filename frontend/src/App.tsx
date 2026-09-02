@@ -7,6 +7,7 @@ import { MissingPartsPage } from "./pages/MissingPartsPage";
 import { MinifigsOverviewPage } from "./pages/MinifigsOverviewPage";
 import { MinifigDetailPage } from "./pages/MinifigDetailPage";
 import { IdentifyMinifigPage } from "./pages/IdentifyMinifigPage";
+import { CollectionSelector } from "./components/CollectionSelector";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 text-sm font-medium ${isActive ? "text-gray-900 border-b-2 border-gray-900" : "text-gray-500"}`;
@@ -36,6 +37,7 @@ function App() {
         <NavLink to="/dashboard" className={navLinkClass}>
           Dashboard
         </NavLink>
+        <CollectionSelector />
       </nav>
       <Routes>
         <Route path="/" element={<Navigate to="/sets" replace />} />

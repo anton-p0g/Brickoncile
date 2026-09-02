@@ -1,26 +1,25 @@
 from collections.abc import Generator
 
-from sqlmodel import Session, SQLModel, create_engine
+from fastapi import Header, HTTPException, Query, Request
+from sqlmodel import Session
 
-from app.infrastructure.db import (
-    models,  # noqa: F401 — registers tables on SQLModel.metadata
-)
-from app.infrastructure.db.migrations import run_migrations
-from app.settings import get_settings
-
-settings = get_settings()
-settings.database_path.parent.mkdir(parents=True, exist_ok=True)
-
-engine = create_engine(f"sqlite:///{settings.database_path}", connect_args={"check_same_thread": False})
+from app.domain.errors import CollectionNotFoundError
 
 
-def create_db_and_tables() -> None:
-    SQLModel.metadata.create_all(engine)
-    # create_all never alters existing tables, so databases predating a model change are brought
-    # up to date here.
-    run_migrations(engine)
+def get_session(
+    request: Request,
+    collection_header: str | None = Header(default=None, alias="X-Collection-ID"),
+    collection_query: str | None = Query(default=None, alias="collection_id"),
+) -> Generator[Session, None, None]:
+    """Open the selected collection for this request, falling back to the original database.
 
-
-def get_session() -> Generator[Session, None, None]:
+    The query form exists for direct browser downloads such as CSV exports, which cannot attach a
+    custom header. Regular API calls use the header so existing route shapes remain compatible.
+    """
+    collection_id = collection_header or collection_query
+    try:
+        engine = request.app.state.collection_manager.get_engine(collection_id)
+    except CollectionNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     with Session(engine) as session:
         yield session

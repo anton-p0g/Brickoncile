@@ -7,6 +7,13 @@
  */
 export type SortingStatus = "not_started" | "sorting" | "sorted" | "complete";
 
+export interface CollectionOut {
+  id: string;
+  name: string;
+  created_at: string;
+  is_default: boolean;
+}
+
 export interface PartOut {
   part_num: string;
   color_id: number;

@@ -290,6 +290,7 @@ export function MinifigsOverviewPage() {
   return (
     <div>
       <StatsBar
+        isLoading={isLoading}
         stats={[
           { label: "minifigs owned", value: instances.length },
           { label: "not started", value: notStartedCount },

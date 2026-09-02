@@ -1,4 +1,4 @@
-"""Delete cached images that no database row references any more.
+"""Delete cached images that no registered collection references any more.
 
 Set deletion now cleans up its own images, so this is only needed for images stranded by
 deletions made before that existed, or by a manual edit of the database.
@@ -11,8 +11,9 @@ Run from the backend directory (as a module, so `app` resolves):
 
 import argparse
 
-from sqlmodel import Session, create_engine
+from sqlmodel import Session
 
+from app.infrastructure.db.collection_manager import CollectionManager
 from app.infrastructure.db.sqlite_minifig_instance_repository import (
     SqliteMinifigInstanceRepository,
 )
@@ -32,13 +33,19 @@ def main() -> int:
         print(f"No images directory at {images_root}")
         return 0
 
-    engine = create_engine(f"sqlite:///{settings.database_path}")
-    with Session(engine) as session:
-        referenced = (
-            SqliteSetRepository(session).list_referenced_image_paths()
-            | SqliteMinifigInstanceRepository(session).list_referenced_image_paths()
-            | SqliteMinifigRepository(session).list_referenced_image_paths()
-        )
+    collection_manager = CollectionManager(settings.database_path)
+    collection_manager.initialize()
+    referenced: set[str] = set()
+    try:
+        for collection in collection_manager.list_collections():
+            with Session(collection_manager.get_engine(collection.id)) as session:
+                referenced |= (
+                    SqliteSetRepository(session).list_referenced_image_paths()
+                    | SqliteMinifigInstanceRepository(session).list_referenced_image_paths()
+                    | SqliteMinifigRepository(session).list_referenced_image_paths()
+                )
+    finally:
+        collection_manager.close()
 
     on_disk = {str(path.relative_to(images_root)) for path in images_root.rglob("*") if path.is_file()}
     orphans = sorted(on_disk - referenced)

@@ -171,6 +171,7 @@ export function SetsPage() {
   return (
     <div>
       <StatsBar
+        isLoading={isLoading}
         stats={[
           { label: "sets", value: sets.length },
           { label: "not started", value: notStartedCount },

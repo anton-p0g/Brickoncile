@@ -70,7 +70,7 @@ def world():
         instances,
         fetch_minifig,
         AddLooseMinifigUseCase(instances, fetch_minifig),
-        DeleteMinifigInstanceUseCase(instances, minifigs, history, sets, images),
+        DeleteMinifigInstanceUseCase(instances, minifigs, history, sets),
         MarkMinifigInstanceFoundUseCase(instances, SetPartsFoundUseCase(sets, instances, history)),
     )
     return instances, history, images, use_case

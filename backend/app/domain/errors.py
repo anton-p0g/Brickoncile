@@ -27,3 +27,15 @@ class ImageRecognitionUnavailableError(Exception):
 
 class UnreadableImageError(Exception):
     """Raised when an uploaded photo is empty, oversized, or not an image the recogniser accepts."""
+
+
+class CollectionNotFoundError(Exception):
+    """Raised when a request names a collection that is not registered."""
+
+
+class InvalidCollectionNameError(Exception):
+    """Raised when a collection display name is empty, unsafe to render, or too long."""
+
+
+class CollectionNameConflictError(Exception):
+    """Raised when a collection display name is already in use, ignoring case."""

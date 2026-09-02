@@ -52,6 +52,7 @@ It is useful for checking second-hand sets, rebuilding sets from a mixed collect
 
 ### Set inventory
 
+- Keep independent collections for family members, projects, or testing, and switch between them from the navigation bar.
 - Add one set or paste a list of set numbers in bulk.
 - Fetch the set name, year, theme, image, parts, colours, quantities, and included minifigures.
 - Search, sort, filter by status or theme, and group the collection by theme.
@@ -102,8 +103,6 @@ Brickoncile uses two external APIs:
 - [Rebrickable API](https://rebrickable.com/api/) provides set metadata, inventories, themes, minifigures, part details, and source images. You need a free Rebrickable API key to add and resync catalog entries.
 - [Brickognize](https://brickognize.com/) provides image recognition for the minifigure identification feature. A photo is sent to Brickognize only when you choose to identify it. Brickoncile then searches Rebrickable for likely catalog matches and asks you to confirm the result.
 
-The collection itself is stored locally. Images fetched while using the app are cached locally so the interface remains quick and previously loaded entries do not depend on every source image being available.
-
 ## Run with Docker
 
 ### Requirements
@@ -153,7 +152,7 @@ Press `Ctrl+C` to stop following the logs. The container will keep running in th
 docker compose down
 ```
 
-This removes the container but keeps your database and images.
+This removes the container but keeps your collection databases and shared images.
 
 ### Update Brickoncile
 

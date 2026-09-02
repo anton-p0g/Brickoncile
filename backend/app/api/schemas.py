@@ -40,6 +40,17 @@ def to_image_url(image_path: str | None) -> str | None:
     return f"/static/images/{image_path}" if image_path else None
 
 
+class CollectionCreateRequest(BaseModel):
+    name: str
+
+
+class CollectionOut(BaseModel):
+    id: str
+    name: str
+    created_at: datetime
+    is_default: bool
+
+
 class PartOut(BaseModel):
     part_num: str
     color_id: int

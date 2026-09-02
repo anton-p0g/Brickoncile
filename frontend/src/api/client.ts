@@ -4,6 +4,7 @@ import type {
   BulkAddMinifigsResponse,
   BulkAddSetsResponse,
   ChangeMinifigFigNumResponse,
+  CollectionOut,
   CollectionStatsOut,
   GroupBy,
   HistoryEntryOut,
@@ -22,6 +23,12 @@ import type {
 } from "./types";
 
 const API_BASE = "/api";
+let activeCollectionId: string | null = null;
+
+/** Set before collection-scoped screens mount, so every request is bound to one database. */
+export function setApiCollectionId(collectionId: string | null): void {
+  activeCollectionId = collectionId;
+}
 
 /** FastAPI puts the human-readable reason in `detail`; anything else is shown as-is so an
  *  unexpected failure still says something rather than being swallowed. */
@@ -36,9 +43,14 @@ function errorMessage(status: number, statusText: string, body: string): string 
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (!(init?.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+  if (activeCollectionId) headers.set("X-Collection-ID", activeCollectionId);
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
     ...init,
+    headers,
   });
   if (!res.ok) {
     const body = await res.text();
@@ -50,6 +62,19 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 
 export function getHealth() {
   return apiFetch<{ status: string }>("/health");
+}
+
+// ---- Collections ----
+
+export function listCollections() {
+  return apiFetch<CollectionOut[]>("/collections");
+}
+
+export function createCollection(name: string) {
+  return apiFetch<CollectionOut>("/collections", {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
 }
 
 // ---- Sets ----
@@ -248,7 +273,9 @@ export function getMissingSummary(groupBy: GroupBy) {
 }
 
 export function exportMissingPartsCsvUrl(groupBy: GroupBy) {
-  return `${API_BASE}/missing-parts/export.csv?group_by=${groupBy}`;
+  const params = new URLSearchParams({ group_by: groupBy });
+  if (activeCollectionId) params.set("collection_id", activeCollectionId);
+  return `${API_BASE}/missing-parts/export.csv?${params.toString()}`;
 }
 
 // ---- Dashboard ----

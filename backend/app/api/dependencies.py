@@ -31,6 +31,7 @@ from app.application.use_cases.sync_minifig_roster import SyncMinifigRosterUseCa
 from app.application.use_cases.sync_themes import SyncThemesUseCase
 from app.application.use_cases.update_sorting_state import UpdateSortingStateUseCase
 from app.domain.repositories import ImageCache, MinifigRecognizer, PartsCatalogClient
+from app.infrastructure.db.collection_manager import CollectionManager
 from app.infrastructure.db.session import get_session
 from app.infrastructure.db.sqlite_minifig_instance_repository import (
     SqliteMinifigInstanceRepository,
@@ -43,6 +44,13 @@ from app.infrastructure.db.sqlite_set_repository import SqliteSetRepository
 from app.infrastructure.db.sqlite_theme_repository import SqliteThemeRepository
 
 SessionDep = Annotated[Session, Depends(get_session)]
+
+
+def get_collection_manager(request: Request) -> CollectionManager:
+    return request.app.state.collection_manager
+
+
+CollectionManagerDep = Annotated[CollectionManager, Depends(get_collection_manager)]
 
 
 def get_catalog_client(request: Request) -> PartsCatalogClient:
@@ -148,9 +156,8 @@ def get_delete_set_use_case(
     instance_repo: InstanceRepoDep,
     minifig_repo: MinifigRepoDep,
     history_repo: HistoryRepoDep,
-    images: ImagesDep,
 ) -> DeleteSetUseCase:
-    return DeleteSetUseCase(set_repo, instance_repo, minifig_repo, history_repo, images)
+    return DeleteSetUseCase(set_repo, instance_repo, minifig_repo, history_repo)
 
 
 def get_delete_minifig_instance_use_case(
@@ -158,9 +165,8 @@ def get_delete_minifig_instance_use_case(
     minifig_repo: MinifigRepoDep,
     history_repo: HistoryRepoDep,
     set_repo: SetRepoDep,
-    images: ImagesDep,
 ) -> DeleteMinifigInstanceUseCase:
-    return DeleteMinifigInstanceUseCase(instance_repo, minifig_repo, history_repo, set_repo, images)
+    return DeleteMinifigInstanceUseCase(instance_repo, minifig_repo, history_repo, set_repo)
 
 
 def get_adjust_set_part_found_use_case(

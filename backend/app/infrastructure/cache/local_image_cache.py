@@ -1,3 +1,5 @@
+import os
+import tempfile
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -42,5 +44,15 @@ class LocalImageCache:
             return None  # a broken image link shouldn't fail the whole set/minifig fetch
 
         full_path.parent.mkdir(parents=True, exist_ok=True)
-        full_path.write_bytes(response.content)
+        # A second collection can request the same image concurrently. Write beside the target and
+        # atomically replace it so neither request can expose a partially written image.
+        temporary_path: str | None = None
+        try:
+            with tempfile.NamedTemporaryFile(dir=full_path.parent, delete=False) as temporary:
+                temporary.write(response.content)
+                temporary_path = temporary.name
+            os.replace(temporary_path, full_path)
+        finally:
+            if temporary_path is not None:
+                Path(temporary_path).unlink(missing_ok=True)
         return relative_path

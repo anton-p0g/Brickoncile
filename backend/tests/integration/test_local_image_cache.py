@@ -1,4 +1,25 @@
+import httpx
+
 from app.infrastructure.cache.local_image_cache import LocalImageCache
+
+
+async def test_downloads_once_and_reuses_the_shared_file(tmp_path):
+    requests = 0
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        nonlocal requests
+        requests += 1
+        return httpx.Response(200, content=b"jpeg", request=request)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+        cache = LocalImageCache(tmp_path, client)
+        first = await cache.get_or_download("https://example.com/3001.jpg", "parts", "3001_0")
+        second = await cache.get_or_download("https://example.com/3001.jpg", "parts", "3001_0")
+
+    assert first == second == "parts/3001_0.jpg"
+    assert (tmp_path / "parts" / "3001_0.jpg").read_bytes() == b"jpeg"
+    assert requests == 1
+    assert [path.name for path in (tmp_path / "parts").iterdir()] == ["3001_0.jpg"]
 
 
 def test_delete_removes_the_file_from_disk(tmp_path):
