@@ -64,7 +64,7 @@ export function CollectionSelector() {
               switchCollection(event.target.value);
             }
           }}
-          className="max-w-44 rounded border border-gray-300 bg-white px-2 py-1 text-sm font-normal text-gray-500"
+          className="max-w-44 rounded border border-gray-300 bg-white px-2 py-1 text-sm font-medium text-gray-900"
         >
           {collections.map((collection) => (
             <option key={collection.id} value={collection.id}>

@@ -27,7 +27,7 @@ export function ResyncButton({ onClick, isPending }: ResyncButtonProps) {
       title="Resync from Rebrickable"
       onClick={onClick}
       disabled={isPending}
-      className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition hover:border-gray-400 disabled:opacity-50"
+      className="flex flex-shrink-0 items-center gap-1.5 rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 transition hover:border-gray-400 disabled:opacity-50"
     >
       <RefreshIcon spinning={isPending} />
       Resync
