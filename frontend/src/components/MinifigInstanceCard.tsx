@@ -13,6 +13,28 @@ interface MinifigInstanceCardProps {
   onError?: (message: string) => void;
 }
 
+function MissingImagePlaceholder() {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-2 px-3 text-center text-gray-400">
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 32 32"
+        className="h-10 w-10 text-gray-300"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="16" cy="8" r="4" />
+        <path d="M10.5 14h11l2.5 8h-5l1 6h-8l1-6H8z" />
+        <path d="M13 14v8M19 14v8M16 22v6" />
+      </svg>
+      <span className="text-[11px] leading-tight font-medium">No image available</span>
+    </div>
+  );
+}
+
 export function MinifigInstanceCard({ instance, showSourceSet = false, onError }: MinifigInstanceCardProps) {
   const borderClass = instance.status === "not_started" ? "border-blue-200 border-dashed" : "border-blue-200";
   const toggle = useToggleMinifigInstanceFound();
@@ -26,8 +48,10 @@ export function MinifigInstanceCard({ instance, showSourceSet = false, onError }
         className={`flex h-full flex-col gap-1.5 rounded border bg-white p-2 hover:border-blue-400 ${borderClass}`}
       >
         <div className="aspect-square w-full overflow-hidden rounded bg-gray-100">
-          {instance.image_url && (
+          {instance.image_url ? (
             <img src={instance.image_url} alt={instance.fig_name} className="h-full w-full object-contain" loading="lazy" />
+          ) : (
+            <MissingImagePlaceholder />
           )}
         </div>
         <div className="text-[10px] font-bold tracking-wide text-blue-600 uppercase">Minifig</div>
