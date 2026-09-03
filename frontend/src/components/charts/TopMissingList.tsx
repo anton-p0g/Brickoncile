@@ -21,16 +21,19 @@ export function TopMissingList({ parts }: { parts: MissingPartStatOut[] }) {
   return (
     <ul className="flex flex-col gap-1.5">
       {parts.map((part) => (
-        <li key={`${part.part_num}-${part.color_id}`} className="flex items-center gap-2 text-xs">
+        <li
+          key={`${part.part_num}-${part.color_id}`}
+          className="-mx-1.5 flex items-center gap-2 rounded px-1.5 text-xs transition-[background-color,transform] duration-150 hover:translate-x-0.5 hover:bg-gray-50"
+        >
           {part.image_url ? (
             <img
               src={part.image_url}
               alt=""
               loading="lazy"
-              className="size-7 shrink-0 rounded border border-gray-200 object-contain"
+              className="size-7 shrink-0 rounded border border-gray-200 bg-white object-contain"
             />
           ) : (
-            <span className="size-7 shrink-0 rounded border border-gray-200" />
+            <span className="size-7 shrink-0 rounded border border-gray-200 bg-white" />
           )}
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="flex items-center gap-1 truncate text-gray-900" title={part.part_name}>

@@ -1,5 +1,60 @@
 @import "tailwindcss";
 
-body {
-  margin: 0;
+@layer base {
+  body {
+    margin: 0;
+  }
+
+  button,
+  select,
+  summary,
+  input,
+  textarea {
+    font: inherit;
+  }
+
+  button:not(:disabled),
+  select:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  /* Shared control language: the compact, boxy treatment used by the set-detail actions. */
+  .ui-control {
+    @apply inline-flex items-center justify-center rounded border font-sans transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .ui-control-sm {
+    @apply px-2 py-0.5 text-xs;
+  }
+
+  .ui-control-md {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  .ui-control-secondary {
+    @apply border-gray-300 bg-white text-gray-900 hover:border-gray-500 hover:bg-gray-50;
+  }
+
+  .ui-control-primary {
+    @apply border-gray-900 bg-gray-900 text-white hover:border-gray-700 hover:bg-gray-700;
+  }
+
+  .ui-control-danger {
+    @apply border-red-300 bg-white text-red-700 hover:border-red-500 hover:bg-red-50;
+  }
+
+  .ui-control-success {
+    @apply border-green-600 bg-white font-semibold text-green-700 hover:border-green-700 hover:bg-green-50;
+  }
+
+  .ui-field {
+    @apply rounded border border-gray-300 bg-white text-gray-900 transition-colors duration-150 placeholder:text-gray-400 hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-200 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500;
+  }
+
+  .ui-hover-surface {
+    @apply transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-sm;
+  }
 }

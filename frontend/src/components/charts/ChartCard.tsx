@@ -8,15 +8,26 @@ interface ChartCardProps {
   aside?: ReactNode;
   /** Spans two columns on wide screens, for the charts that need the width. */
   wide?: boolean;
+  /** Keep a short card at its natural height when its grid-row neighbour is much taller. */
+  fitContent?: boolean;
   children: ReactNode;
 }
 
-export function ChartCard({ title, subtitle, aside, wide = false, children }: ChartCardProps) {
+export function ChartCard({
+  title,
+  subtitle,
+  aside,
+  wide = false,
+  fitContent = false,
+  children,
+}: ChartCardProps) {
   return (
     // min-w-0 stops a wide row inside one card from sizing the whole grid column, which would
     // stretch every other card with it and push the page into a horizontal scroll.
     <section
-      className={`min-w-0 rounded-lg border border-gray-200 bg-white p-3 ${wide ? "lg:col-span-2" : ""}`}
+      className={`min-w-0 rounded-lg border border-gray-200 bg-white p-3 transition-[border-color,box-shadow] duration-150 hover:border-gray-300 hover:shadow-sm ${
+        wide ? "lg:col-span-2" : ""
+      } ${fitContent ? "self-start" : ""}`}
     >
       <header className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h2 className="text-sm font-semibold text-gray-900">{title}</h2>

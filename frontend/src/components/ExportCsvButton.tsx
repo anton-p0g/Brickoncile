@@ -5,7 +5,7 @@ export function ExportCsvButton({ groupBy }: { groupBy: GroupBy }) {
   return (
     <a
       href={exportMissingPartsCsvUrl(groupBy)}
-      className="rounded border border-gray-300 bg-white px-3 py-1 text-xs hover:border-gray-500"
+      className="ui-control ui-control-secondary px-3 py-1 text-xs"
     >
       Export CSV
     </a>

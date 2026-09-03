@@ -305,7 +305,7 @@ export function MinifigsOverviewPage() {
           />
         }
       />
-      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-1.5">
+      <div className="flex flex-wrap items-center gap-2 bg-gray-50 px-4 pt-1.5 pb-2.5">
         <StatusFilterChips
           value={statusFilter}
           onChange={setStatusFilter}
@@ -319,10 +319,10 @@ export function MinifigsOverviewPage() {
             aria-pressed={showLooseOnly}
             onClick={() => setLooseOnly((v) => !v)}
             title="Show only minifigures no owned set accounts for"
-            className={`rounded-full border px-2 py-0.5 text-xs ${
+            className={`ui-control ui-control-sm ${
               showLooseOnly
-                ? "border-gray-900 bg-gray-900 text-white"
-                : "border-gray-300 bg-white"
+                ? "border-gray-900 bg-gray-900 text-white hover:border-gray-700 hover:bg-gray-700"
+                : "ui-control-secondary"
             }`}
           >
             Loose only
@@ -341,11 +341,11 @@ export function MinifigsOverviewPage() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter your minifigures"
           aria-label="Filter your minifigures by name, fig ID or set"
-          className="ml-auto w-44 rounded border border-gray-300 px-2 py-0.5 text-xs"
+          className="ui-field ml-auto w-44 px-2 py-0.5 text-xs"
         />
       </div>
       {sourceSetFilter && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-amber-50 px-4 py-1.5 text-sm">
+        <div className="mx-4 mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm ring-1 ring-amber-100">
           <span>
             Showing minifigures from set{" "}
             <span className="font-mono font-semibold">{sourceSetFilter}</span>
@@ -354,7 +354,7 @@ export function MinifigsOverviewPage() {
           <button
             type="button"
             onClick={() => setSearchParams({})}
-            className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs hover:border-gray-500"
+            className="ui-control ui-control-secondary ui-control-sm"
           >
             Show all minifigures
           </button>
@@ -368,19 +368,19 @@ export function MinifigsOverviewPage() {
             onChange={(e) => setReferenceInput(e.target.value)}
             placeholder="Paste a Rebrickable link or fig ID..."
             aria-label="Rebrickable minifigure link or fig ID to add"
-            className="min-w-48 flex-1 rounded border border-gray-300 px-3 py-1.5 text-sm"
+            className="ui-field min-w-48 flex-1 px-3 py-1.5 text-sm"
           />
           <button
             type="submit"
             disabled={addMinifig.isPending}
-            className="rounded border border-gray-900 bg-gray-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+            className="ui-control ui-control-primary ui-control-md"
           >
             {addMinifig.isPending ? "Adding..." : "+ Add Minifigure"}
           </button>
           <button
             type="button"
             onClick={() => setShowBulk((v) => !v)}
-            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm"
+            className="ui-control ui-control-secondary ui-control-md"
           >
             + Bulk Add
           </button>
@@ -392,13 +392,13 @@ export function MinifigsOverviewPage() {
               value={bulkInput}
               onChange={(e) => setBulkInput(e.target.value)}
               placeholder="Paste Rebrickable links or fig IDs, one per line"
-              className="h-24 rounded border border-gray-300 p-2 text-sm"
+              className="ui-field h-24 p-2 text-sm"
             />
             <button
               type="button"
               onClick={handleBulkAdd}
               disabled={bulkAddMinifigs.isPending}
-              className="w-fit rounded border border-gray-900 bg-gray-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+              className="ui-control ui-control-primary ui-control-md w-fit"
             >
               {bulkAddMinifigs.isPending ? "Adding..." : "Add all"}
             </button>
@@ -424,7 +424,7 @@ export function MinifigsOverviewPage() {
         <div className="flex flex-col gap-5 px-4 pb-4">
           {groups.map((group) => (
             <section key={group.setNum ?? LOOSE_GROUP_KEY}>
-              <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-gray-200 pt-2">
+              <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 px-0.5">
                 {group.setNum === null ? (
                   <span className="font-mono text-sm font-bold text-gray-700">
                     loose minifigures — no set

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { ThemeStats } from "../../api/types";
 import { completionFill, completionInk, formatCount, treemap } from "../../lib/chart";
 import { NO_THEME_LABEL } from "../../lib/themes";
@@ -15,6 +15,7 @@ const HEIGHT = 300;
  * encoding size faithfully.
  */
 export function ThemeTreemap({ themes }: { themes: ThemeStats[] }) {
+  const [activeLabel, setActiveLabel] = useState<string | null>(null);
   const tiles = useMemo(
     () => treemap(themes, (theme) => theme.quantity_required, WIDTH, HEIGHT),
     [themes],
@@ -22,41 +23,79 @@ export function ThemeTreemap({ themes }: { themes: ThemeStats[] }) {
 
   if (tiles.length === 0) return <ChartEmpty>No themed sets yet.</ChartEmpty>;
 
-  return (
-    <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full" role="img" aria-label="Collection size by theme">
-      {tiles.map(({ item, x, y, width, height }) => {
-        const ratio = item.quantity_required > 0 ? item.quantity_found / item.quantity_required : 0;
-        const label = item.theme_name ?? NO_THEME_LABEL;
-        // Only tiles with room get text; the rest rely on their tooltip, which every tile has.
-        const showName = width > 62 && height > 26;
-        const showCount = width > 62 && height > 42;
+  const activeTile = activeLabel === null
+    ? null
+    : tiles.find(({ item }) => (item.theme_name ?? NO_THEME_LABEL) === activeLabel);
+  const activeRatio = activeTile && activeTile.item.quantity_required > 0
+    ? activeTile.item.quantity_found / activeTile.item.quantity_required
+    : 0;
 
-        return (
-          <g key={label}>
-            <title>{`${label} · ${formatCount(item.quantity_required)} pieces across ${item.sets} set${item.sets === 1 ? "" : "s"}, ${Math.round(ratio * 100)}% found`}</title>
-            {/* A 2px inset gives every tile a surface-coloured gutter instead of a shared edge. */}
-            <rect
-              x={x + 1}
-              y={y + 1}
-              width={Math.max(0, width - 2)}
-              height={Math.max(0, height - 2)}
-              rx={2}
-              fill={completionFill(ratio)}
-            />
-            {showName && (
-              <text x={x + 7} y={y + 16} fontSize={11} fontWeight={600} fill={completionInk(ratio)}>
-                {clip(label, width)}
-              </text>
-            )}
-            {showCount && (
-              <text x={x + 7} y={y + 30} fontSize={10} fill={completionInk(ratio)} opacity={0.85}>
-                {formatCount(item.quantity_required)} pcs · {Math.round(ratio * 100)}%
-              </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
+  return (
+    <figure className="m-0">
+      <svg
+        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+        className="w-full overflow-visible"
+        role="img"
+        aria-label="Collection size by theme"
+        onMouseLeave={() => setActiveLabel(null)}
+      >
+        {tiles.map(({ item, x, y, width, height }) => {
+          const ratio = item.quantity_required > 0 ? item.quantity_found / item.quantity_required : 0;
+          const label = item.theme_name ?? NO_THEME_LABEL;
+          const description = `${label} · ${formatCount(item.quantity_required)} pieces across ${item.sets} set${item.sets === 1 ? "" : "s"}, ${Math.round(ratio * 100)}% found`;
+          const active = label === activeLabel;
+          // Only tiles with room get text; the immediate readout below carries every tile's detail.
+          const showName = width > 62 && height > 26;
+          const showCount = width > 62 && height > 42;
+
+          return (
+            <g
+              key={label}
+              tabIndex={0}
+              aria-label={description}
+              onMouseEnter={() => setActiveLabel(label)}
+              onFocus={() => setActiveLabel(label)}
+              onBlur={() => setActiveLabel(null)}
+              className="cursor-default origin-center transition-transform duration-150 [transform-box:fill-box] hover:scale-[1.015] focus:scale-[1.015] focus:outline-none"
+            >
+              {/* A 2px inset gives every tile a surface-coloured gutter instead of a shared edge. */}
+              <rect
+                x={x + 1}
+                y={y + 1}
+                width={Math.max(0, width - 2)}
+                height={Math.max(0, height - 2)}
+                rx={2}
+                fill={completionFill(ratio)}
+                stroke={active ? "#374151" : "transparent"}
+                strokeWidth={active ? 1.5 : 0}
+                vectorEffect="non-scaling-stroke"
+              />
+              {showName && (
+                <text x={x + 7} y={y + 16} fontSize={11} fontWeight={600} fill={completionInk(ratio)}>
+                  {clip(label, width)}
+                </text>
+              )}
+              {showCount && (
+                <text x={x + 7} y={y + 30} fontSize={10} fill={completionInk(ratio)} opacity={0.85}>
+                  {formatCount(item.quantity_required)} pcs · {Math.round(ratio * 100)}%
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+
+      <figcaption className="flex min-h-8 items-center justify-center px-2 text-center text-xs text-gray-500">
+        {activeTile ? (
+          <span className="font-medium text-gray-900">
+            {activeLabel} · {formatCount(activeTile.item.quantity_required)} pieces across {activeTile.item.sets}{" "}
+            {activeTile.item.sets === 1 ? "set" : "sets"}, {Math.round(activeRatio * 100)}% found
+          </span>
+        ) : (
+          <span className="text-gray-400">Hover or focus a theme for details.</span>
+        )}
+      </figcaption>
+    </figure>
   );
 }
 

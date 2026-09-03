@@ -23,16 +23,19 @@ export function CommonPartsChart({ parts, totalSets }: CommonPartsChartProps) {
   return (
     <ul className="flex flex-col gap-1.5">
       {parts.map((part) => (
-        <li key={`${part.part_num}-${part.color_id}`} className="flex items-center gap-2 text-xs">
+        <li
+          key={`${part.part_num}-${part.color_id}`}
+          className="-mx-1.5 flex items-center gap-2 rounded px-1.5 py-0.5 text-xs transition-[background-color,transform] duration-150 hover:translate-x-0.5 hover:bg-gray-50"
+        >
           {part.image_url ? (
             <img
               src={part.image_url}
               alt=""
               loading="lazy"
-              className="size-6 shrink-0 rounded border border-gray-200 object-contain"
+              className="size-6 shrink-0 rounded border border-gray-200 bg-white object-contain"
             />
           ) : (
-            <span className="size-6 shrink-0 rounded border border-gray-200" />
+            <span className="size-6 shrink-0 rounded border border-gray-200 bg-white" />
           )}
           <span className="flex w-28 shrink-0 items-center gap-1 truncate text-gray-600 sm:w-44">
             <ColorSwatch colorId={part.color_id} colorName={part.color_name} />

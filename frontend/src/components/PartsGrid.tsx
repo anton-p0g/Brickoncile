@@ -166,23 +166,23 @@ export function PartsGrid({
 
   return (
     <div>
-      <div className="sticky top-0 z-30 flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-50 p-2">
+      <div className="sticky top-2 z-30 mx-2 mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-white/95 p-2 shadow-sm ring-1 ring-black/5 backdrop-blur">
         <input
           ref={searchRef}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search part # or name"
-          className="h-7 w-48 flex-none rounded-full border border-gray-300 bg-white px-3 text-xs outline-none placeholder:text-gray-400 focus:border-gray-500"
+          className="ui-field h-7 w-48 flex-none px-3 text-xs"
         />
         {colors.map((color) => (
           <button
             key={color}
             type="button"
             onClick={() => toggleColor(color)}
-            className={`h-7 rounded-full border px-3 text-xs ${
+            className={`ui-control h-7 px-3 text-xs ${
               activeColors.has(color)
-                ? "border-gray-900 bg-gray-900 text-white"
-                : "border-gray-300 bg-white"
+                ? "border-gray-900 bg-gray-900 text-white hover:border-gray-700 hover:bg-gray-700"
+                : "ui-control-secondary"
             }`}
           >
             {color}
@@ -191,10 +191,10 @@ export function PartsGrid({
         <button
           type="button"
           onClick={() => setHideFound((v) => !v)}
-          className={`h-7 rounded-full border px-3 text-xs ${
+          className={`ui-control h-7 px-3 text-xs ${
             hideFound
-              ? "border-gray-900 bg-gray-900 text-white"
-              : "border-gray-300 bg-white"
+              ? "border-gray-900 bg-gray-900 text-white hover:border-gray-700 hover:bg-gray-700"
+              : "ui-control-secondary"
           }`}
         >
           Hide found
@@ -204,7 +204,7 @@ export function PartsGrid({
             type="button"
             onClick={() => setConfirmingAll(true)}
             disabled={isBulkPending}
-            className="h-7 rounded-full border border-green-600 bg-white px-3 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+            className="ui-control ui-control-success h-7 px-3 text-xs"
           >
             {isBulkPending
               ? "Confirming..."

@@ -36,7 +36,9 @@ export function SetCard({ set, onRequestDelete }: SetCardProps) {
     set.status === "not_started" ? "border-gray-400 border-dashed" : "border-gray-300";
 
   return (
-    <div className={`relative flex h-full flex-col rounded border bg-white p-2 hover:border-gray-500 ${borderClass}`}>
+    <div
+      className={`relative flex h-full flex-col rounded border bg-white p-2 transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-gray-500 hover:shadow-sm ${borderClass}`}
+    >
       {/* Stretched link rather than a wrapping anchor, so the delete button is a real sibling
           button instead of interactive content nested inside an <a>. */}
       <Link
@@ -46,7 +48,7 @@ export function SetCard({ set, onRequestDelete }: SetCardProps) {
       />
 
       <div className="pointer-events-none flex flex-1 flex-col gap-1.5">
-        <div className="aspect-square w-full overflow-hidden rounded bg-gray-100">
+        <div className="aspect-square w-full overflow-hidden rounded border border-gray-200 bg-white">
           {set.image_url && (
             <img src={set.image_url} alt={set.name} className="h-full w-full object-contain" loading="lazy" />
           )}
@@ -81,7 +83,7 @@ export function SetCard({ set, onRequestDelete }: SetCardProps) {
         onClick={onRequestDelete}
         aria-label={`Delete set ${set.set_num} ${set.name}`}
         title="Delete this set"
-        className="absolute right-1 bottom-1 z-20 flex h-6 w-6 items-center justify-center rounded border border-gray-300 bg-white text-gray-400 transition hover:border-red-400 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:outline-none"
+        className="ui-control absolute right-1 bottom-1 z-20 h-6 w-6 border-gray-300 bg-white text-gray-400 hover:border-red-400 hover:bg-red-50 hover:text-red-600"
       >
         <TrashIcon />
       </button>

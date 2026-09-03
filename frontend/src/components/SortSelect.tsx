@@ -17,7 +17,7 @@ export function SortSelect<T extends string>({ value, onChange, options, labels 
       value={value}
       onChange={(e) => onChange(e.target.value as T)}
       aria-label="Sort by"
-      className="rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+      className="ui-field px-2 py-1 text-sm"
     >
       {options.map((option) => (
         <option key={option} value={option}>

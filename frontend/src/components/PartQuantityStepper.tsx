@@ -98,7 +98,7 @@ export function PartQuantityStepper({ part, onMark, onClose }: PartQuantityStepp
             aria-label="One fewer found"
             disabled={atMin}
             onClick={() => commit(draftValue - 1)}
-            className="h-10 w-10 flex-shrink-0 rounded-full border border-gray-300 text-lg leading-none disabled:opacity-30"
+            className="ui-control ui-control-secondary h-10 w-10 flex-shrink-0 text-lg leading-none disabled:opacity-30"
           >
             &minus;
           </button>
@@ -115,7 +115,7 @@ export function PartQuantityStepper({ part, onMark, onClose }: PartQuantityStepp
               onFocus={(event) => event.target.select()}
               onBlur={() => commit(draftValue)}
               onKeyDown={handleKeyDown}
-              className="w-16 rounded border border-gray-300 px-1 py-1 text-center font-mono text-lg font-bold focus:border-gray-900 focus:outline-none"
+              className="ui-field w-16 px-1 py-1 text-center font-mono text-lg font-bold"
             />
             <span className="text-sm text-gray-500">of {part.quantity_required}</span>
           </span>
@@ -124,7 +124,7 @@ export function PartQuantityStepper({ part, onMark, onClose }: PartQuantityStepp
             aria-label="One more found"
             disabled={atMax}
             onClick={() => commit(draftValue + 1)}
-            className="h-10 w-10 flex-shrink-0 rounded-full border border-gray-300 text-lg leading-none disabled:opacity-30"
+            className="ui-control ui-control-secondary h-10 w-10 flex-shrink-0 text-lg leading-none disabled:opacity-30"
           >
             +
           </button>
@@ -134,14 +134,14 @@ export function PartQuantityStepper({ part, onMark, onClose }: PartQuantityStepp
           <button
             type="button"
             onClick={() => commit(0)}
-            className="rounded border border-gray-300 px-2 py-1 text-xs hover:border-gray-500"
+            className="ui-control ui-control-secondary px-2 py-1 text-xs"
           >
             None found
           </button>
           <button
             type="button"
             onClick={() => commit(part.quantity_required)}
-            className="rounded border border-green-600 bg-green-600 px-2 py-1 text-xs font-semibold text-white hover:bg-green-700"
+            className="ui-control border-green-600 bg-green-600 px-2 py-1 text-xs font-semibold text-white hover:border-green-700 hover:bg-green-700"
           >
             All {part.quantity_required} found
           </button>
@@ -153,7 +153,7 @@ export function PartQuantityStepper({ part, onMark, onClose }: PartQuantityStepp
             commit(draftValue);
             onClose();
           }}
-          className="mt-2 w-full rounded border border-gray-300 px-2 py-1 text-xs hover:border-gray-500"
+          className="ui-control ui-control-secondary mt-2 w-full px-2 py-1 text-xs"
         >
           Done
         </button>

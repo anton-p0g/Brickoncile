@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { SetProgress, SortingStatus } from "../../api/types";
-import { formatCompact, INK } from "../../lib/chart";
+import { formatCompact, formatCount, INK } from "../../lib/chart";
 import { STATUS_HEX, STATUS_LABELS } from "../../lib/completion";
 import { ChartEmpty } from "./ChartCard";
 
@@ -26,6 +26,8 @@ const STATUS_ORDER: SortingStatus[] = ["not_started", "sorting", "sorted", "comp
  * distinction on its own and the colour only reinforces it.
  */
 export function SizeCompletionScatter({ sets }: { sets: SetProgress[] }) {
+  const [activeSetNum, setActiveSetNum] = useState<string | null>(null);
+
   const geometry = useMemo(() => {
     const plottable = sets.filter((set) => set.quantity_required > 0);
     if (plottable.length === 0) return null;
@@ -59,9 +61,19 @@ export function SizeCompletionScatter({ sets }: { sets: SetProgress[] }) {
 
   if (!geometry) return <ChartEmpty>No sets with a cached parts list yet.</ChartEmpty>;
 
+  const active = activeSetNum === null
+    ? null
+    : geometry.marks.find(({ set }) => set.set_num === activeSetNum);
+
   return (
     <figure className="m-0">
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full" role="img" aria-label="Set size against completion">
+      <svg
+        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+        className="w-full"
+        role="img"
+        aria-label="Set size against completion"
+        onMouseLeave={() => setActiveSetNum(null)}
+      >
         {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
           const y = PAD.top + PLOT_HEIGHT - fraction * PLOT_HEIGHT;
           return (
@@ -84,23 +96,51 @@ export function SizeCompletionScatter({ sets }: { sets: SetProgress[] }) {
         </text>
 
         {geometry.marks.map(({ set, x, y, percent }) => (
-          <g key={set.set_num}>
-            <title>{`${set.set_num} ${set.name} · ${set.quantity_required} pieces, ${percent}% found, ${STATUS_LABELS[set.status]}`}</title>
+          <g
+            key={set.set_num}
+            tabIndex={0}
+            aria-label={`${set.set_num} ${set.name} · ${set.quantity_required} pieces, ${percent}% found, ${STATUS_LABELS[set.status]}`}
+            onMouseEnter={() => setActiveSetNum(set.set_num)}
+            onFocus={() => setActiveSetNum(set.set_num)}
+            onBlur={() => setActiveSetNum(null)}
+            className="cursor-default focus:outline-none"
+          >
+            {/* A forgiving invisible target makes dense and hollow marks equally easy to inspect. */}
+            <circle cx={x} cy={y} r={10} fill="transparent" />
+            {activeSetNum === set.set_num && (
+              <circle cx={x} cy={y} r={7.5} fill="none" stroke={INK.text} strokeWidth={1.25} opacity={0.7} />
+            )}
             <StatusMark x={x} y={y} status={set.status} />
           </g>
         ))}
       </svg>
 
-      <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-        {STATUS_ORDER.map((status) => (
-          <li key={status} className="flex items-center gap-1.5 text-xs text-gray-600">
-            <svg width={14} height={14} viewBox="0 0 14 14" aria-hidden>
-              <StatusMark x={7} y={7} status={status} />
-            </svg>
-            {STATUS_LABELS[status]}
-          </li>
-        ))}
-      </ul>
+      <div className="mt-1 flex min-h-9 flex-wrap items-center gap-x-4 gap-y-1">
+        <ul className="flex flex-wrap gap-x-4 gap-y-1">
+          {STATUS_ORDER.map((status) => (
+            <li key={status} className="flex items-center gap-1.5 text-xs text-gray-600">
+              <svg width={14} height={14} viewBox="0 0 14 14" aria-hidden>
+                <StatusMark x={7} y={7} status={status} />
+              </svg>
+              {STATUS_LABELS[status]}
+            </li>
+          ))}
+        </ul>
+
+        <p className="ml-auto min-w-0 flex-1 text-right text-xs text-gray-500">
+          {active ? (
+            <>
+              <span className="font-semibold text-gray-900">
+                {active.set.set_num} {active.set.name}
+              </span>{" "}
+              · {formatCount(active.set.quantity_required)} pieces · {active.percent}% found ·{" "}
+              {STATUS_LABELS[active.set.status]}
+            </>
+          ) : (
+            <span className="text-gray-400">Hover or focus a set for details.</span>
+          )}
+        </p>
+      </div>
     </figure>
   );
 }

@@ -122,7 +122,7 @@ export function AddMinifigsResultDialog({ results, onClose }: AddMinifigsResultD
             ref={closeRef}
             type="button"
             onClick={onClose}
-            className="rounded border border-gray-900 bg-gray-900 px-3 py-1.5 text-sm text-white hover:bg-gray-700"
+            className="ui-control ui-control-primary ui-control-md"
           >
             Done
           </button>

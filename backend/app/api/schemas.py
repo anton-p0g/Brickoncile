@@ -655,6 +655,14 @@ class DuplicatedFigOut(BaseModel):
     count: int
 
 
+class LooseFigOut(BaseModel):
+    instance_id: str
+    fig_num: str
+    fig_name: str
+    image_url: str | None
+    status: SortingStatus
+
+
 class MinifigStatsOut(BaseModel):
     total: int
     loose: int
@@ -662,6 +670,7 @@ class MinifigStatsOut(BaseModel):
     distinct_figs: int
     complete: int
     most_duplicated: list[DuplicatedFigOut]
+    loose_figs: list[LooseFigOut]
 
 
 class CollectionStatsOut(BaseModel):
@@ -751,6 +760,16 @@ class CollectionStatsOut(BaseModel):
                         count=d.count,
                     )
                     for d in stats.minifigs.most_duplicated
+                ],
+                loose_figs=[
+                    LooseFigOut(
+                        instance_id=f.instance_id,
+                        fig_num=f.fig_num,
+                        fig_name=f.fig_name,
+                        image_url=to_image_url(f.image_path),
+                        status=f.status,
+                    )
+                    for f in stats.minifigs.loose_figs
                 ],
             ),
         )

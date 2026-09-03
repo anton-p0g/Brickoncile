@@ -13,7 +13,7 @@ export function CopyListButton({ getText }: { getText: () => string }) {
     <button
       type="button"
       onClick={handleClick}
-      className="rounded border border-gray-300 bg-white px-3 py-1 text-xs hover:border-gray-500"
+      className="ui-control ui-control-secondary px-3 py-1 text-xs"
     >
       {copied ? "Copied!" : "Copy list"}
     </button>

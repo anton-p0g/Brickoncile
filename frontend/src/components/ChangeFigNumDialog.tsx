@@ -80,7 +80,7 @@ export function ChangeFigNumDialog({
           autoComplete="off"
           autoCapitalize="none"
           spellCheck={false}
-          className="mt-1 w-full rounded border border-gray-300 px-2 py-1.5 font-mono text-sm focus:border-gray-900 focus:outline-none"
+          className="ui-field mt-1 w-full px-2 py-1.5 font-mono text-sm"
         />
 
         <p className="mt-2 text-xs text-gray-500">
@@ -94,14 +94,14 @@ export function ChangeFigNumDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:border-gray-500"
+            className="ui-control ui-control-secondary ui-control-md"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={!canSubmit}
-            className="rounded border border-gray-900 bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50"
+            className="ui-control ui-control-primary ui-control-md font-semibold"
           >
             {isPending ? "Looking up..." : "Change fig ID"}
           </button>

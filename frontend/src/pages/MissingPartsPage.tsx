@@ -318,14 +318,14 @@ export function MissingPartsPage() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-1.5">
+      <div className="flex flex-wrap items-center gap-2 bg-gray-50 px-4 pt-1.5 pb-2.5">
         <GroupToggle value={groupBy} onChange={setGroupBy} />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter missing parts"
           aria-label="Filter missing parts by part number, name, colour or set"
-          className="w-44 rounded border border-gray-300 px-2 py-0.5 text-xs"
+          className="ui-field w-44 px-2 py-0.5 text-xs"
         />
         <ColorFilterSelect
           options={colorOptions}
@@ -333,7 +333,7 @@ export function MissingPartsPage() {
           onChange={setColorFilter}
         />
         <details className="relative ml-auto">
-          <summary className="cursor-pointer list-none rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-600 hover:border-gray-500">
+          <summary className="ui-control ui-control-secondary ui-control-sm list-none text-gray-600">
             Export
           </summary>
           <div className="absolute right-0 z-20 mt-1 flex gap-2 rounded border border-gray-200 bg-white p-2 shadow-lg">

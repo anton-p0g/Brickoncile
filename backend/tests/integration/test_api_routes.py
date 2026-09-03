@@ -756,6 +756,7 @@ def test_stats_on_an_empty_collection(client):
     assert body["burn_up"]["points"] == []
     assert body["sessions"]["count"] == 0
     assert len(body["activity_by_hour"]) == 24
+    assert body["minifigs"]["loose_figs"] == []
 
 
 def test_stats_follow_the_collection_and_its_finds(client):

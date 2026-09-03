@@ -35,6 +35,7 @@ HOURLY_BURN_UP_MAX_SPAN = timedelta(days=60)
 TOP_MISSING_LIMIT = 12
 COMMON_PARTS_LIMIT = 15
 DUPLICATED_FIGS_LIMIT = 5
+LOOSE_FIGS_LIMIT = 6
 
 
 class Totals(BaseModel):
@@ -161,6 +162,14 @@ class DuplicatedFig(BaseModel):
     count: int
 
 
+class LooseFig(BaseModel):
+    instance_id: str
+    fig_num: str
+    fig_name: str
+    image_path: str | None
+    status: SortingStatus
+
+
 class MinifigStats(BaseModel):
     total: int
     loose: int
@@ -168,6 +177,7 @@ class MinifigStats(BaseModel):
     distinct_figs: int
     complete: int
     most_duplicated: list[DuplicatedFig]
+    loose_figs: list[LooseFig]
 
 
 class CollectionStats(BaseModel):
@@ -477,6 +487,10 @@ class GetCollectionStatsUseCase:
             if len(owned) > 1
         ]
         duplicated.sort(key=lambda d: (-d.count, d.fig_name))
+        loose_figs = sorted(
+            (i for i in instances if i.source_set_num is None),
+            key=lambda i: (i.fig_name.lower(), i.id),
+        )
 
         return MinifigStats(
             total=len(instances),
@@ -485,4 +499,14 @@ class GetCollectionStatsUseCase:
             distinct_figs=len(by_fig),
             complete=sum(1 for i in instances if i.is_complete),
             most_duplicated=duplicated[:DUPLICATED_FIGS_LIMIT],
+            loose_figs=[
+                LooseFig(
+                    instance_id=i.id,
+                    fig_num=i.fig_num,
+                    fig_name=i.fig_name,
+                    image_path=i.image_path,
+                    status=i.status,
+                )
+                for i in loose_figs[:LOOSE_FIGS_LIMIT]
+            ],
         )

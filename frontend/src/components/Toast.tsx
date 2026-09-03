@@ -50,7 +50,7 @@ export function Toast({ toast, onDismiss }: ToastProps) {
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-gray-400 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300"
+          className="ui-control h-6 w-6 shrink-0 border-transparent text-gray-400 hover:bg-gray-50 hover:text-gray-900"
         >
           <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none">
             <path

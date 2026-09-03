@@ -111,7 +111,11 @@ function PreviewCard({ preview }: { preview: Preview }) {
       {/* A fixed height rather than a square: set renders are wide, so a square box would be
           mostly empty backdrop and would make the card tall enough to cover the grid it explains. */}
       {set.image_url ? (
-        <img src={set.image_url} alt="" className="mb-1.5 h-24 w-full rounded bg-gray-100 object-contain" />
+        <img
+          src={set.image_url}
+          alt=""
+          className="mb-1.5 h-24 w-full rounded border border-gray-200 bg-white object-contain"
+        />
       ) : (
         <div className="mb-1.5 flex h-24 w-full items-center justify-center rounded bg-gray-100 text-[11px] text-gray-400">
           no image

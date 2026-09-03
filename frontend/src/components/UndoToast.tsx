@@ -17,7 +17,7 @@ export function UndoToast({ message, onUndo, onDismiss }: UndoToastProps) {
         <button
           type="button"
           onClick={onUndo}
-          className="rounded border border-gray-500 px-2 py-0.5 text-xs font-semibold hover:border-gray-300"
+          className="ui-control border-gray-500 px-2 py-0.5 text-xs font-semibold hover:border-gray-300 hover:bg-gray-800"
         >
           Undo
         </button>
@@ -25,7 +25,7 @@ export function UndoToast({ message, onUndo, onDismiss }: UndoToastProps) {
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="px-1 text-gray-400 hover:text-white"
+          className="ui-control border-transparent px-1 text-gray-400 hover:bg-gray-800 hover:text-white"
         >
           &#10005;
         </button>

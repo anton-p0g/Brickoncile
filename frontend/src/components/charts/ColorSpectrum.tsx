@@ -24,7 +24,10 @@ export function ColorSpectrum({ colors, limit = 18 }: { colors: ColorStats[]; li
         {shown.map((color) => {
           const hex = colorHex(color.color_id);
           return (
-            <li key={color.color_id} className="flex items-center gap-2 text-xs">
+            <li
+              key={color.color_id}
+              className="-mx-1.5 flex items-center gap-2 rounded px-1.5 py-0.5 text-xs transition-[background-color,transform] duration-150 hover:translate-x-0.5 hover:bg-gray-50"
+            >
               <span className="w-28 shrink-0 truncate text-gray-600" title={color.color_name}>
                 {color.color_name}
               </span>

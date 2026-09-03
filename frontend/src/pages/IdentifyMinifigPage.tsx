@@ -133,7 +133,7 @@ function CandidateCard({
                   type="button"
                   onClick={() => onClaim(instance)}
                   disabled={isPending}
-                  className="rounded border border-blue-600 bg-white px-2.5 py-1 text-xs font-semibold text-blue-800 hover:bg-blue-100 disabled:opacity-50"
+                  className="ui-control border-blue-600 bg-white px-2.5 py-1 text-xs font-semibold text-blue-800 hover:border-blue-700 hover:bg-blue-100"
                 >
                   It is this one - from set {instance.source_set_num}
                 </button>
@@ -172,10 +172,10 @@ function CandidateCard({
           type="button"
           onClick={() => onAddLoose(match)}
           disabled={isPending}
-          className={`rounded border px-2.5 py-1 text-xs font-semibold disabled:opacity-50 ${
+          className={`ui-control px-2.5 py-1 text-xs font-semibold ${
             expecting.length > 0
-              ? "border-gray-300 bg-white text-gray-700 hover:border-gray-500"
-              : "border-green-600 bg-white text-green-700 hover:bg-green-50"
+              ? "ui-control-secondary text-gray-700"
+              : "ui-control-success"
           }`}
         >
           {expecting.length > 0
@@ -189,7 +189,7 @@ function CandidateCard({
             href={match.reference_url}
             target="_blank"
             rel="noreferrer"
-            className="rounded border border-gray-300 bg-white px-2.5 py-1 text-xs hover:border-gray-500"
+            className="ui-control ui-control-secondary px-2.5 py-1 text-xs"
           >
             Check on BrickLink
           </a>
@@ -264,7 +264,7 @@ function ReviewPanel({
         <button
           type="button"
           onClick={onClear}
-          className="ml-auto rounded border border-gray-300 bg-white px-2.5 py-1 text-xs hover:border-gray-500"
+          className="ui-control ui-control-secondary ml-auto px-2.5 py-1 text-xs"
         >
           Clear list
         </button>
@@ -297,14 +297,14 @@ function ReviewPanel({
                 <button
                   type="button"
                   onClick={() => onLookAgain(entry)}
-                  className="rounded border border-gray-300 bg-white px-2.5 py-1 text-xs hover:border-gray-500"
+                  className="ui-control ui-control-secondary px-2.5 py-1 text-xs"
                 >
                   Look again
                 </button>
                 <button
                   type="button"
                   onClick={() => onDismiss(entry.photo.id)}
-                  className="rounded border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-500 hover:border-gray-500"
+                  className="ui-control ui-control-secondary px-2.5 py-1 text-xs text-gray-500"
                 >
                   Remove
                 </button>
@@ -476,7 +476,7 @@ export function IdentifyMinifigPage() {
           />
           <label
             htmlFor="minifig-photo-input"
-            className="cursor-pointer rounded border border-gray-900 bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700"
+            className="ui-control ui-control-primary ui-control-md cursor-pointer font-semibold"
           >
             Choose photos
           </label>
@@ -493,7 +493,7 @@ export function IdentifyMinifigPage() {
           {/* On a phone this opens the camera directly; on a desktop it is another file picker. */}
           <label
             htmlFor="minifig-camera-input"
-            className="cursor-pointer rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:border-gray-500"
+            className="ui-control ui-control-secondary ui-control-md cursor-pointer"
           >
             Take a photo
           </label>
@@ -543,7 +543,7 @@ export function IdentifyMinifigPage() {
               <button
                 type="button"
                 onClick={() => advance({ added: false })}
-                className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:border-gray-500"
+                className="ui-control ui-control-secondary ui-control-md"
               >
                 {remaining > 0
                   ? `Skip - ${remaining} photo${remaining === 1 ? "" : "s"} left`
@@ -570,7 +570,7 @@ export function IdentifyMinifigPage() {
                 <button
                   type="button"
                   onClick={() => currentResult.refetch()}
-                  className="mt-2 rounded border border-gray-300 bg-white px-2.5 py-1 text-xs hover:border-gray-500"
+                  className="ui-control ui-control-secondary mt-2 px-2.5 py-1 text-xs"
                 >
                   Try again
                 </button>

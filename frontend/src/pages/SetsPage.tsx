@@ -182,7 +182,7 @@ export function SetsPage() {
           <SortSelect value={sort} onChange={setSort} options={SORT_OPTIONS} labels={SORT_LABELS} />
         }
       />
-      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-1.5">
+      <div className="flex flex-wrap items-center gap-2 bg-gray-50 px-4 pt-1.5 pb-2.5">
         <StatusFilterChips value={statusFilter} onChange={setStatusFilter} counts={statusCounts} />
         <span className="ml-auto flex flex-wrap items-center gap-2">
           {/* Filters the collection. Distinct from the box below, which adds new sets. */}
@@ -191,15 +191,17 @@ export function SetsPage() {
             onChange={(e) => setOwnedSearch(e.target.value)}
             placeholder="Filter your sets"
             aria-label="Filter your sets by number, name or theme"
-            className="w-44 rounded border border-gray-300 px-2 py-0.5 text-xs"
+            className="ui-field w-44 px-2 py-0.5 text-xs"
           />
           <ThemeFilterSelect value={themeFilter} onChange={setThemeFilter} options={themeChoices} />
           <button
             type="button"
             aria-pressed={groupByThemeEnabled}
             onClick={() => setGroupByThemeEnabled((v) => !v)}
-            className={`rounded-full border px-2 py-0.5 text-xs ${
-              groupByThemeEnabled ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 bg-white"
+            className={`ui-control ui-control-sm ${
+              groupByThemeEnabled
+                ? "border-gray-900 bg-gray-900 text-white hover:border-gray-700 hover:bg-gray-700"
+                : "ui-control-secondary"
             }`}
           >
             Group by theme
@@ -212,19 +214,19 @@ export function SetsPage() {
             value={setNumInput}
             onChange={(e) => setSetNumInput(e.target.value)}
             placeholder="Set # or name..."
-            className="min-w-48 flex-1 rounded border border-gray-300 px-3 py-1.5 text-sm"
+            className="ui-field min-w-48 flex-1 px-3 py-1.5 text-sm"
           />
           <button
             type="submit"
             disabled={addSet.isPending}
-            className="rounded border border-gray-900 bg-gray-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+            className="ui-control ui-control-primary ui-control-md"
           >
             {addSet.isPending ? "Adding..." : "+ Add Set"}
           </button>
           <button
             type="button"
             onClick={() => setShowBulk((v) => !v)}
-            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm"
+            className="ui-control ui-control-secondary ui-control-md"
           >
             + Bulk Add
           </button>
@@ -236,7 +238,7 @@ export function SetsPage() {
               value={bulkInput}
               onChange={(e) => setBulkInput(e.target.value)}
               placeholder="Paste set numbers, one per line or comma-separated"
-              className="h-24 rounded border border-gray-300 p-2 text-sm"
+              className="ui-field h-24 p-2 text-sm"
             />
             <p className="text-xs text-gray-400">
               A bare number gets the <span className="font-mono">-1</span> variant suffix added
@@ -247,7 +249,7 @@ export function SetsPage() {
               type="button"
               onClick={handleBulkAdd}
               disabled={bulkAddSets.isPending}
-              className="w-fit rounded border border-gray-900 bg-gray-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+              className="ui-control ui-control-primary ui-control-md w-fit"
             >
               {bulkAddSets.isPending ? "Adding..." : "Add all"}
             </button>
@@ -264,7 +266,7 @@ export function SetsPage() {
           <div className="mt-4 flex flex-col gap-4">
             {themeGroups.map((group) => (
               <section key={group.theme}>
-                <h2 className="mb-1.5 flex items-baseline gap-2 border-b border-gray-200 pb-1 text-sm font-semibold">
+                <h2 className="mb-2 flex items-baseline gap-2 px-0.5 text-sm font-semibold">
                   {group.label}
                   <span className="font-mono text-xs font-normal text-gray-400">
                     {group.sets.length} set{group.sets.length === 1 ? "" : "s"}

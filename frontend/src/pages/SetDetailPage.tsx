@@ -40,7 +40,7 @@ function MinifigsLink({ setNum, count, isLoading }: { setNum: string; count: num
   return (
     <Link
       to={`/minifigs?set=${encodeURIComponent(setNum)}`}
-      className="flex-shrink-0 rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:border-gray-500"
+      className="ui-control ui-control-secondary ui-control-md flex-shrink-0 gap-1.5"
     >
       Minifigures <span className="font-mono text-xs text-gray-500">{count}</span>
     </Link>
@@ -66,8 +66,8 @@ export function SetDetailPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-4 border-b border-gray-200 p-4">
-        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded bg-gray-100">
+      <div className="flex flex-wrap items-center gap-4 p-4 pb-2">
+        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded border border-gray-200 bg-white">
           {set.image_url && (
             <button
               type="button"

@@ -25,7 +25,7 @@ export function SortingStateButton({
         type="button"
         onClick={() => onChange(false)}
         disabled={isPending}
-        className="flex-shrink-0 rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:border-gray-500 disabled:opacity-50"
+        className="ui-control ui-control-secondary ui-control-md flex-shrink-0"
       >
         {isPending ? "Working..." : "Resume sorting"}
       </button>
@@ -45,7 +45,7 @@ export function SortingStateButton({
           ? `Marks the ${unaccountedCount} unfound piece${unaccountedCount === 1 ? "" : "s"} as missing`
           : "Everything is accounted for"
       }
-      className="flex-shrink-0 rounded border border-gray-900 bg-gray-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+      className="ui-control ui-control-primary ui-control-md flex-shrink-0"
     >
       {isPending
         ? "Working..."

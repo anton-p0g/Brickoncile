@@ -92,7 +92,7 @@ export function MinifigDetailPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-start gap-4 border-b border-gray-200 p-4">
+      <div className="flex flex-wrap items-start gap-4 p-4 pb-2">
         <div className="h-32 w-24 flex-shrink-0 overflow-hidden rounded bg-gray-100">
           {instance.image_url && (
             <button
@@ -122,7 +122,7 @@ export function MinifigDetailPage() {
                 type="button"
                 onClick={() => setChangingFigNum(true)}
                 title="Refile this minifigure under a different Rebrickable fig ID"
-                className="rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:border-gray-500 hover:text-gray-900"
+                className="ui-control ui-control-secondary px-1.5 py-0.5 text-xs text-gray-600 hover:text-gray-900"
               >
                 Change ID
               </button>
@@ -131,7 +131,7 @@ export function MinifigDetailPage() {
           {instance.source_set_num ? (
             <Link
               to={`/sets/${encodeURIComponent(instance.source_set_num)}`}
-              className="w-fit rounded-full border border-gray-300 px-2 py-0.5 text-xs hover:border-gray-500"
+              className="ui-control ui-control-secondary ui-control-sm w-fit"
             >
               source: set {instance.source_set_num}
               {instance.source_set_name ? ` — ${instance.source_set_name}` : ""}
@@ -192,14 +192,14 @@ export function MinifigDetailPage() {
       <div className="flex items-center gap-3 border-t border-gray-200 p-4">
         <Link
           to="/minifigs"
-          className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:border-gray-500"
+          className="ui-control ui-control-secondary ui-control-md"
         >
           Back to minifigures
         </Link>
         {instance.source_set_num ? (
           <Link
             to={`/sets/${encodeURIComponent(instance.source_set_num)}`}
-            className="ml-auto rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:border-gray-500"
+            className="ui-control ui-control-secondary ui-control-md ml-auto"
           >
             View source set ({instance.source_set_num})
           </Link>
@@ -208,7 +208,7 @@ export function MinifigDetailPage() {
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="ml-auto rounded border border-red-300 bg-white px-3 py-1.5 text-sm text-red-700 hover:border-red-500"
+            className="ui-control ui-control-danger ui-control-md ml-auto"
           >
             Delete this minifigure
           </button>

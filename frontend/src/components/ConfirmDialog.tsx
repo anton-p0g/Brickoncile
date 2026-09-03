@@ -47,7 +47,7 @@ export function ConfirmDialog({ title, body, confirmLabel, onConfirm, onCancel, 
             ref={cancelRef}
             type="button"
             onClick={onCancel}
-            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:border-gray-500"
+            className="ui-control ui-control-secondary ui-control-md"
           >
             Cancel
           </button>
@@ -55,7 +55,7 @@ export function ConfirmDialog({ title, body, confirmLabel, onConfirm, onCancel, 
             type="button"
             onClick={onConfirm}
             disabled={isPending}
-            className="rounded border border-red-600 bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+            className="ui-control ui-control-md border-red-600 bg-red-600 font-semibold text-white hover:border-red-700 hover:bg-red-700"
           >
             {isPending ? "Working..." : confirmLabel}
           </button>

@@ -10,7 +10,11 @@ import { IdentifyMinifigPage } from "./pages/IdentifyMinifigPage";
 import { CollectionSelector } from "./components/CollectionSelector";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `px-3 py-2 text-sm font-medium ${isActive ? "text-gray-900 border-b-2 border-gray-900" : "text-gray-500"}`;
+  `px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400 focus-visible:outline-none ${
+    isActive
+      ? "border-b-2 border-gray-900 bg-gray-50 text-gray-900 hover:bg-gray-100"
+      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+  }`;
 
 function App() {
   return (

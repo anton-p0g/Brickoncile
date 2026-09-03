@@ -69,7 +69,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
           <button
             type="button"
             onClick={() => setLoadAttempt((attempt) => attempt + 1)}
-            className="mt-3 rounded border border-gray-300 px-3 py-1.5 text-sm hover:border-gray-500"
+            className="ui-control ui-control-secondary ui-control-md mt-3"
           >
             Try again
           </button>

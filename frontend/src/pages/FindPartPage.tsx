@@ -63,7 +63,7 @@ function SourceRow({ result, source, onMark, isPending }: SourceRowProps) {
             onClick={() => onMark(source, 1)}
             disabled={isPending}
             title={`Record one ${result.part_num} found for ${source.label}`}
-            className="rounded border border-green-600 bg-white px-2 py-0.5 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+            className="ui-control ui-control-success ui-control-sm"
           >
             +1 found
           </button>
@@ -73,7 +73,7 @@ function SourceRow({ result, source, onMark, isPending }: SourceRowProps) {
               onClick={() => onMark(source, source.quantity_unaccounted)}
               disabled={isPending}
               title={`Record all ${source.quantity_unaccounted} found for ${source.label}`}
-              className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs hover:border-gray-500 disabled:opacity-50"
+              className="ui-control ui-control-secondary ui-control-sm"
             >
               all {source.quantity_unaccounted}
             </button>
@@ -200,16 +200,16 @@ export function FindPartPage() {
             placeholder="Part number, name or element id"
             aria-label="Search for a part"
             autoFocus
-            className="min-w-56 flex-1 rounded border border-gray-300 px-3 py-1.5 text-sm"
+            className="ui-field min-w-56 flex-1 px-3 py-1.5 text-sm"
           />
           <button
             type="button"
             aria-pressed={hideSatisfied}
             onClick={() => setHideSatisfied((v) => !v)}
-            className={`rounded-full border px-2 py-0.5 text-xs ${
+            className={`ui-control ui-control-sm ${
               hideSatisfied
-                ? "border-gray-900 bg-gray-900 text-white"
-                : "border-gray-300 bg-white"
+                ? "border-gray-900 bg-gray-900 text-white hover:border-gray-700 hover:bg-gray-700"
+                : "ui-control-secondary"
             }`}
           >
             Only what is still wanted

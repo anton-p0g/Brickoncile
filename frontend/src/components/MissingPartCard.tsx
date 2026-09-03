@@ -105,7 +105,7 @@ export function MissingPartCard({ aggregate, onZoom, onMarkFound, pendingKey }: 
               }
               title={`Confirm one present in ${contributor.name}`}
               aria-label={`Confirm one ${aggregate.part_num} ${aggregate.color_name} present in ${contributor.name}`}
-              className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border border-green-300 text-[9px] font-bold text-green-700 hover:bg-green-50 disabled:opacity-40"
+              className="ui-control h-4 w-4 flex-shrink-0 border-green-300 text-[9px] font-bold text-green-700 hover:border-green-500 hover:bg-green-50 disabled:opacity-40"
             >
               &#10003;
             </button>

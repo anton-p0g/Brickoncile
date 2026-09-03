@@ -12,7 +12,7 @@ export function ThemeFilterSelect({ value, onChange, options }: ThemeFilterSelec
       value={value}
       onChange={(e) => onChange(e.target.value)}
       aria-label="Filter by theme"
-      className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs"
+      className="ui-field px-2 py-0.5 text-xs"
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>

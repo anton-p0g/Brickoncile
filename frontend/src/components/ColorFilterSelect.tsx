@@ -68,8 +68,10 @@ export function ColorFilterSelect({ options, value, onChange }: ColorFilterSelec
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         title="Filter by colour"
-        className={`flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs ${
-          selected ? "border-gray-900 bg-white font-semibold" : "border-gray-300 bg-white text-gray-600"
+        className={`ui-control ui-control-sm gap-1.5 ${
+          selected
+            ? "border-gray-900 bg-white font-semibold hover:bg-gray-50"
+            : "ui-control-secondary text-gray-600"
         }`}
       >
         {selected && <ColorSwatch colorId={selected.colorId} colorName={selected.colorName} />}
@@ -92,7 +94,7 @@ export function ColorFilterSelect({ options, value, onChange }: ColorFilterSelec
               }}
               placeholder="Search colours, e.g. orange"
               aria-label="Search colours"
-              className="w-full rounded border border-gray-300 px-2 py-1 text-xs"
+              className="ui-field w-full px-2 py-1 text-xs"
             />
           </div>
 

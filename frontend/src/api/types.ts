@@ -423,6 +423,14 @@ export interface DuplicatedFigOut {
   count: number;
 }
 
+export interface LooseFigOut {
+  instance_id: string;
+  fig_num: string;
+  fig_name: string;
+  image_url: string | null;
+  status: SortingStatus;
+}
+
 export interface MinifigStatsOut {
   total: number;
   loose: number;
@@ -430,6 +438,7 @@ export interface MinifigStatsOut {
   distinct_figs: number;
   complete: number;
   most_duplicated: DuplicatedFigOut[];
+  loose_figs: LooseFigOut[];
 }
 
 export interface CollectionStatsOut {

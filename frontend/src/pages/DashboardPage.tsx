@@ -1,4 +1,6 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import type { DuplicatedFigOut, LooseFigOut } from "../api/types";
 import { BurnUpChart } from "../components/charts/BurnUpChart";
 import { ChartCard, ChartEmpty } from "../components/charts/ChartCard";
 import { ColorSpectrum } from "../components/charts/ColorSpectrum";
@@ -12,7 +14,7 @@ import { StatusFunnel } from "../components/charts/StatusFunnel";
 import { ThemeTreemap } from "../components/charts/ThemeTreemap";
 import { TopMissingList } from "../components/charts/TopMissingList";
 import { formatCount, formatDuration } from "../lib/chart";
-import { completionPercent } from "../lib/completion";
+import { completionPercent, STATUS_LABELS } from "../lib/completion";
 import { useCollectionStats } from "../hooks/useStats";
 
 export function DashboardPage() {
@@ -115,74 +117,74 @@ export function DashboardPage() {
           <CommonPartsChart parts={stats.common_parts} totalSets={totals.sets} />
         </ChartCard>
 
-        <ChartCard title="Most wanted">
-          <TopMissingList parts={stats.top_missing} />
-        </ChartCard>
+        {/* These two columns flow independently. Short cards no longer force empty space above the
+            next one, and the slight mismatch keeps the dashboard from feeling like a rigid table. */}
+        <div className="grid gap-3 lg:col-span-2 lg:grid-cols-2">
+          <div className="flex min-w-0 flex-col gap-3">
+            <ChartCard title="Most wanted">
+              <TopMissingList parts={stats.top_missing} />
+            </ChartCard>
 
-        <ChartCard title="When you sort" subtitle="By hour of day">
-          {stats.sessions.count === 0 ? (
-            <ChartEmpty>No finds logged yet.</ChartEmpty>
-          ) : (
-            <>
+            <ChartCard title="Collection by release year">
               <SimpleBarChart
-                bars={stats.activity_by_hour.map((bucket) => ({
-                  label: String(bucket.hour).padStart(2, "0"),
-                  value: bucket.events,
-                  title: `${bucket.hour}:00 · ${bucket.events} finds, ${formatCount(bucket.pieces)} pieces`,
+                bars={stats.years.map((bucket) => ({
+                  label: bucket.year === null ? "?" : String(bucket.year),
+                  value: bucket.sets,
+                  title: `${bucket.year ?? "Unknown year"} · ${bucket.sets} set${bucket.sets === 1 ? "" : "s"}, ${formatCount(bucket.quantity_required)} pieces`,
                 }))}
-                labelEvery={3}
+                height={150}
               />
-              <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
-                <Figure label="sessions" value={sessions.count} />
-                <Figure label="per session" value={`${formatCount(sessions.pieces_per_session)} pcs`} />
-                <Figure label="longest" value={formatDuration(sessions.longest_minutes)} />
-                <Figure label="pace" value={`${formatCount(sessions.pieces_per_hour)} pcs/h`} />
+            </ChartCard>
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-3">
+            <ChartCard title="When you sort" subtitle="By hour of day">
+              {stats.sessions.count === 0 ? (
+                <ChartEmpty>No finds logged yet.</ChartEmpty>
+              ) : (
+                <>
+                  <SimpleBarChart
+                    bars={stats.activity_by_hour.map((bucket) => ({
+                      label: String(bucket.hour).padStart(2, "0"),
+                      value: bucket.events,
+                      title: `${bucket.hour}:00 · ${bucket.events} finds, ${formatCount(bucket.pieces)} pieces`,
+                    }))}
+                    labelEvery={3}
+                  />
+                  <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
+                    <Figure label="sessions" value={sessions.count} />
+                    <Figure label="per session" value={`${formatCount(sessions.pieces_per_session)} pcs`} />
+                    <Figure label="longest" value={formatDuration(sessions.longest_minutes)} />
+                    <Figure label="pace" value={`${formatCount(sessions.pieces_per_hour)} pcs/h`} />
+                  </dl>
+                </>
+              )}
+            </ChartCard>
+
+            <ChartCard title="Minifigures" subtitle="Owned, duplicates, and loose figures">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
+                <Figure label="owned" value={minifigs.total} />
+                <Figure label="distinct" value={minifigs.distinct_figs} />
+                <Figure label="complete" value={minifigs.complete} />
+                <Figure label="loose" value={minifigs.loose} />
               </dl>
-            </>
-          )}
-        </ChartCard>
-
-        <ChartCard title="Collection by release year">
-          <SimpleBarChart
-            bars={stats.years.map((bucket) => ({
-              label: bucket.year === null ? "?" : String(bucket.year),
-              value: bucket.sets,
-              title: `${bucket.year ?? "Unknown year"} · ${bucket.sets} set${bucket.sets === 1 ? "" : "s"}, ${formatCount(bucket.quantity_required)} pieces`,
-            }))}
-            height={150}
-          />
-        </ChartCard>
-
-        <ChartCard title="Minifigures" subtitle="Owned, and duplicates">
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
-            <Figure label="owned" value={minifigs.total} />
-            <Figure label="distinct" value={minifigs.distinct_figs} />
-            <Figure label="complete" value={minifigs.complete} />
-            <Figure label="loose" value={minifigs.loose} />
-          </dl>
-          {minifigs.most_duplicated.length > 0 && (
-            <ul className="mt-3 flex flex-col gap-1.5">
-              {minifigs.most_duplicated.map((fig) => (
-                <li key={fig.fig_num} className="flex items-center gap-2 text-xs">
-                  {fig.image_url ? (
-                    <img
-                      src={fig.image_url}
-                      alt=""
-                      loading="lazy"
-                      className="size-7 shrink-0 rounded border border-gray-200 object-contain"
-                    />
-                  ) : (
-                    <span className="size-7 shrink-0 rounded border border-gray-200" />
-                  )}
-                  <span className="min-w-0 flex-1 truncate text-gray-900" title={fig.fig_name}>
-                    {fig.fig_name}
-                  </span>
-                  <span className="shrink-0 font-mono text-gray-500">×{fig.count}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </ChartCard>
+              {minifigs.most_duplicated.length > 0 && (
+                <MinifigSection title="Most duplicated">
+                  {minifigs.most_duplicated.map((fig) => (
+                    <DuplicatedMinifigRow key={fig.fig_num} fig={fig} />
+                  ))}
+                </MinifigSection>
+              )}
+              {minifigs.loose_figs.length > 0 && (
+                <MinifigSection title="Loose figures">
+                  {minifigs.loose_figs.map((fig) => (
+                    <LooseMinifigRow key={fig.instance_id} fig={fig} />
+                  ))}
+                </MinifigSection>
+              )}
+            </ChartCard>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -194,5 +196,59 @@ function Figure({ label, value }: { label: string; value: string | number }) {
       <dt className="text-gray-500">{label}</dt>
       <dd className="font-mono text-sm text-gray-900">{value}</dd>
     </div>
+  );
+}
+
+function MinifigSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="mt-3 border-t border-gray-100 pt-2.5">
+      <h3 className="mb-1 text-[10px] font-semibold tracking-wide text-gray-500 uppercase">{title}</h3>
+      <ul className="flex flex-col gap-1">{children}</ul>
+    </div>
+  );
+}
+
+function DuplicatedMinifigRow({ fig }: { fig: DuplicatedFigOut }) {
+  return (
+    <li className="-mx-1.5 flex items-center gap-2 rounded px-1.5 py-0.5 text-xs transition-[background-color,transform] duration-150 hover:translate-x-0.5 hover:bg-gray-50">
+      <MinifigThumbnail imageUrl={fig.image_url} />
+      <span className="min-w-0 flex-1 truncate text-gray-900" title={fig.fig_name}>
+        {fig.fig_name}
+      </span>
+      <span className="shrink-0 font-mono text-gray-500">×{fig.count}</span>
+    </li>
+  );
+}
+
+function LooseMinifigRow({ fig }: { fig: LooseFigOut }) {
+  return (
+    <li>
+      <Link
+        to={`/minifigs/${encodeURIComponent(fig.instance_id)}`}
+        className="-mx-1.5 flex items-center gap-2 rounded px-1.5 py-0.5 text-xs transition-[background-color,transform] duration-150 hover:translate-x-0.5 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600"
+      >
+        <MinifigThumbnail imageUrl={fig.image_url} />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-gray-900" title={fig.fig_name}>
+            {fig.fig_name}
+          </span>
+          <span className="block font-mono text-[10px] text-gray-400">{fig.fig_num}</span>
+        </span>
+        <span className="shrink-0 text-[10px] text-gray-500">{STATUS_LABELS[fig.status]}</span>
+      </Link>
+    </li>
+  );
+}
+
+function MinifigThumbnail({ imageUrl }: { imageUrl: string | null }) {
+  return imageUrl ? (
+    <img
+      src={imageUrl}
+      alt=""
+      loading="lazy"
+      className="size-7 shrink-0 rounded border border-gray-200 bg-white object-contain"
+    />
+  ) : (
+    <span className="size-7 shrink-0 rounded border border-gray-200 bg-white" />
   );
 }

@@ -219,13 +219,22 @@ def test_minifig_stats_split_loose_from_set_owned_and_rank_duplicates():
     template = [make_part("3626", quantity_required=1)]
     instance_repo.create("fig-001", "Battle Droid", None, "75192-1", template)
     instance_repo.create("fig-001", "Battle Droid", None, "75193-1", template)
-    instance_repo.create("fig-002", "R2-D2", None, None, template)
+    loose = instance_repo.create("fig-002", "R2-D2", "minifigs/fig-002.jpg", None, template)
 
     stats = build(instances=instance_repo).execute()
 
     assert (stats.minifigs.total, stats.minifigs.loose, stats.minifigs.from_set) == (3, 1, 2)
     assert stats.minifigs.distinct_figs == 2
     assert [(d.fig_num, d.count) for d in stats.minifigs.most_duplicated] == [("fig-001", 2)]
+    assert [f.model_dump() for f in stats.minifigs.loose_figs] == [
+        {
+            "instance_id": loose.id,
+            "fig_num": "fig-002",
+            "fig_name": "R2-D2",
+            "image_path": "minifigs/fig-002.jpg",
+            "status": "not_started",
+        }
+    ]
 
 
 def test_top_missing_reports_how_many_sources_want_each_part():

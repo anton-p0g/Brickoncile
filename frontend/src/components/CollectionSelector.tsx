@@ -64,7 +64,7 @@ export function CollectionSelector() {
               switchCollection(event.target.value);
             }
           }}
-          className="max-w-44 rounded border border-gray-300 bg-white px-2 py-1 text-sm font-medium text-gray-900"
+          className="ui-field max-w-44 px-2 py-1 text-sm font-medium"
         >
           {collections.map((collection) => (
             <option key={collection.id} value={collection.id}>
@@ -104,7 +104,7 @@ export function CollectionSelector() {
                 maxLength={50}
                 disabled={isCreating}
                 placeholder="For example, Test Collection"
-                className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm font-normal disabled:bg-gray-100"
+                className="ui-field mt-1 w-full px-3 py-2 text-sm font-normal"
               />
             </label>
             {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
@@ -113,14 +113,14 @@ export function CollectionSelector() {
                 type="button"
                 onClick={() => setShowCreate(false)}
                 disabled={isCreating}
-                className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm hover:border-gray-500 disabled:opacity-50"
+                className="ui-control ui-control-secondary ui-control-md"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isCreating || !name.trim()}
-                className="rounded border border-gray-900 bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50"
+                className="ui-control ui-control-primary ui-control-md font-semibold"
               >
                 {isCreating ? "Creating..." : "Create"}
               </button>
