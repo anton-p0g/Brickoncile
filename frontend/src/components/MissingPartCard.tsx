@@ -22,7 +22,7 @@ interface MissingPartCardProps {
  */
 export function MissingPartCard({ aggregate, onZoom, onMarkFound, pendingKey }: MissingPartCardProps) {
   return (
-    <div className="flex flex-col gap-1.5 rounded border border-red-200 bg-white p-2">
+    <div className="flex flex-col gap-1.5 rounded border border-red-200 bg-white p-2 transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-red-500 hover:shadow-sm">
       <div className="relative">
         {/* Disabled without an image, rather than a target that looks live and does nothing. */}
         <button
