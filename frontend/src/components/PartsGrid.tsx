@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { EyeOff } from "lucide-react";
 import type { PartFoundTarget, PartOut, SortingStatus } from "../api/types";
+import { colorHex, needsSwatchOutline } from "../lib/colors";
 import {
   clampFound,
   currentFoundTargets,
@@ -13,6 +15,7 @@ import { UndoToast } from "./UndoToast";
 
 const UNDO_TIMEOUT_MS = 5000;
 const BULK_UNDO_TIMEOUT_MS = 15000;
+const NO_COLOR_ID = 9999;
 
 interface PartsGridProps {
   parts: PartOut[];
@@ -35,6 +38,18 @@ function modeFor(status: SortingStatus): GridMode {
   return status === "sorted" ? "missing" : "find";
 }
 
+/** A whisper of the real LEGO colour: enough to connect label and pile without turning the
+ *  toolbar into a rainbow at rest. Pale colours mix toward gray so White still has a hover. */
+function colorFilterStyle(colorId: number): CSSProperties {
+  const hex = colorHex(colorId);
+  if (!hex) return {};
+  const paleBase = needsSwatchOutline(hex) ? "#e5e7eb" : "#ffffff";
+  return {
+    "--part-color-hover": `color-mix(in srgb, ${hex} 14%, ${paleBase})`,
+    "--part-color-hover-border": `color-mix(in srgb, ${hex} 36%, #9ca3af)`,
+  } as CSSProperties;
+}
+
 export function PartsGrid({
   parts,
   status,
@@ -43,7 +58,7 @@ export function PartsGrid({
   isBulkPending,
 }: PartsGridProps) {
   const [search, setSearch] = useState("");
-  const [activeColors, setActiveColors] = useState<Set<string>>(new Set());
+  const [activeColors, setActiveColors] = useState<Set<number>>(new Set());
   const [hideFound, setHideFound] = useState(false);
   const [stepperKey, setStepperKey] = useState<string | null>(null);
   const [lastChange, setLastChange] = useState<LastChange | null>(null);
@@ -51,10 +66,13 @@ export function PartsGrid({
   const searchRef = useRef<HTMLInputElement>(null);
   const mode = modeFor(status);
 
-  const colors = useMemo(
-    () => Array.from(new Set(parts.map((p) => p.color_name))).sort(),
-    [parts],
-  );
+  const colors = useMemo(() => {
+    const namesById = new Map<number, string>();
+    for (const part of parts) namesById.set(part.color_id, part.color_name);
+    return Array.from(namesById, ([id, name]) => ({ id, name })).sort(
+      (a, b) => Number(a.id === NO_COLOR_ID) - Number(b.id === NO_COLOR_ID) || a.name.localeCompare(b.name),
+    );
+  }, [parts]);
   const stepperPart = parts.find((p) => partKey(p) === stepperKey) ?? null;
 
   useEffect(() => {
@@ -86,11 +104,11 @@ export function PartsGrid({
     return () => window.clearTimeout(timer);
   }, [lastChange]);
 
-  function toggleColor(color: string) {
+  function toggleColor(colorId: number) {
     setActiveColors((prev) => {
       const next = new Set(prev);
-      if (next.has(color)) next.delete(color);
-      else next.add(color);
+      if (next.has(colorId)) next.delete(colorId);
+      else next.add(colorId);
       return next;
     });
   }
@@ -128,7 +146,7 @@ export function PartsGrid({
   const filtered = parts.filter((p) => {
     if (p.is_spare) return false;
     if (hideFound && p.is_fully_found) return false;
-    if (activeColors.size > 0 && !activeColors.has(p.color_name)) return false;
+    if (activeColors.size > 0 && !activeColors.has(p.color_id)) return false;
     if (search) {
       const q = search.toLowerCase();
       if (
@@ -174,31 +192,36 @@ export function PartsGrid({
           placeholder="Search part # or name"
           className="ui-field h-7 w-48 flex-none px-3 text-xs"
         />
+        <button
+          type="button"
+          aria-pressed={hideFound}
+          onClick={() => setHideFound((v) => !v)}
+          title="Hide part lines whose required pieces are all confirmed present"
+          className={`ui-control mr-1 h-7 gap-1.5 px-3 text-xs font-semibold ${
+            hideFound
+              ? "border-blue-700 bg-blue-700 text-white hover:border-blue-800 hover:bg-blue-800"
+              : "border-blue-300 bg-blue-50 text-blue-800 hover:border-blue-500 hover:bg-blue-100"
+          }`}
+        >
+          <EyeOff aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={1.8} />
+          Hide found
+        </button>
         {colors.map((color) => (
           <button
-            key={color}
+            key={color.id}
             type="button"
-            onClick={() => toggleColor(color)}
-            className={`ui-control h-7 px-3 text-xs ${
-              activeColors.has(color)
+            aria-pressed={activeColors.has(color.id)}
+            onClick={() => toggleColor(color.id)}
+            style={colorFilterStyle(color.id)}
+            className={`part-color-filter ui-control h-7 px-3 text-xs ${
+              activeColors.has(color.id)
                 ? "border-gray-900 bg-gray-900 text-white hover:border-gray-700 hover:bg-gray-700"
                 : "ui-control-secondary"
             }`}
           >
-            {color}
+            {color.name}
           </button>
         ))}
-        <button
-          type="button"
-          onClick={() => setHideFound((v) => !v)}
-          className={`ui-control h-7 px-3 text-xs ${
-            hideFound
-              ? "border-gray-900 bg-gray-900 text-white hover:border-gray-700 hover:bg-gray-700"
-              : "ui-control-secondary"
-          }`}
-        >
-          Hide found
-        </button>
         {canConfirmAll && (
           <button
             type="button"

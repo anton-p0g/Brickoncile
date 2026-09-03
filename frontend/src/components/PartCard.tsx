@@ -143,16 +143,16 @@ export function PartCard({
         : "Tap to mark one more missing";
 
   const borderClass = fullyFound
-    ? "border-green-300 bg-green-50"
+    ? "border-green-300 bg-green-50 hover:border-green-500"
     : mode === "missing" && unaccounted > 0
-      ? "border-red-300 bg-red-50"
+      ? "border-red-300 bg-red-50 hover:border-red-500"
       : partial
-        ? "border-amber-300 bg-amber-50"
-        : "border-gray-300 bg-white";
+        ? "border-amber-300 bg-amber-50 hover:border-amber-500"
+        : "border-gray-300 bg-white hover:border-gray-500";
 
   return (
     <div
-      className={`relative flex flex-col gap-1 rounded border p-1.5 text-left ${borderClass}`}
+      className={`relative flex flex-col gap-1 rounded border p-1.5 text-left transition-[border-color,box-shadow,transform] duration-150 hover:z-20 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-md ${borderClass}`}
     >
       {/* The whole card is the tap target. It overlays the content, which ignores pointers, and
           sits below the corner badge so the badge's own tap wins. */}

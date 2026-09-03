@@ -57,4 +57,9 @@
   .ui-hover-surface {
     @apply transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-sm;
   }
+
+  .part-color-filter:not([aria-pressed="true"]):hover {
+    background-color: var(--part-color-hover, #f9fafb);
+    border-color: var(--part-color-hover-border, #9ca3af);
+  }
 }
