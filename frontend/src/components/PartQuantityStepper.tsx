@@ -202,11 +202,11 @@ export function PartQuantityStepper({
           </button>
         </div>
 
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="ui-control ui-control-secondary flex-1 px-2 py-1 text-xs"
+            className="ui-control ui-control-secondary px-2 py-1 text-xs"
           >
             Cancel
           </button>

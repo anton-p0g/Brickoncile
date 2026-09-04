@@ -31,49 +31,93 @@ interface PartCardProps {
 function useLongPress(onLongPress: () => void, enabled: boolean) {
   const timer = useRef<number | null>(null);
   const origin = useRef<{ x: number; y: number } | null>(null);
-  const fired = useRef(false);
+  const activePointer = useRef<number | null>(null);
+  const startedAt = useRef(0);
+  const suppressNextClick = useRef(false);
 
-  const clear = () => {
+  const clearTimer = () => {
     if (timer.current !== null) {
       window.clearTimeout(timer.current);
       timer.current = null;
     }
-    origin.current = null;
   };
 
-  useEffect(() => clear, []);
+  const endPress = () => {
+    clearTimer();
+    origin.current = null;
+    activePointer.current = null;
+  };
+
+  const fireLongPress = () => {
+    if (activePointer.current === null) return false;
+
+    // Set this before opening the dialog. React may render the dialog before the browser emits the
+    // compatibility click that follows pointerup, but that click still belongs to this gesture.
+    suppressNextClick.current = true;
+    endPress();
+    onLongPress();
+    return true;
+  };
+
+  useEffect(
+    () => () => {
+      clearTimer();
+      activePointer.current = null;
+    },
+    [],
+  );
 
   return {
-    /** True when the press already ran the long-press action, so the trailing click is a no-op. */
+    /** True when this compatibility click belongs to a hold or cancelled scroll gesture. */
     consumedClick: () => {
-      const consumed = fired.current;
-      fired.current = false;
+      const consumed = suppressNextClick.current;
+      suppressNextClick.current = false;
       return consumed;
     },
     handlers: {
       onPointerDown: (event: ReactPointerEvent) => {
         if (!enabled || event.button !== 0) return;
-        fired.current = false;
+        endPress();
+        suppressNextClick.current = false;
+        activePointer.current = event.pointerId;
+        startedAt.current = performance.now();
         origin.current = { x: event.clientX, y: event.clientY };
-        timer.current = window.setTimeout(() => {
-          fired.current = true;
-          timer.current = null;
-          onLongPress();
-        }, LONG_PRESS_MS);
+        timer.current = window.setTimeout(fireLongPress, LONG_PRESS_MS);
       },
       onPointerMove: (event: ReactPointerEvent) => {
-        if (timer.current === null || !origin.current) return;
+        if (activePointer.current !== event.pointerId || !origin.current) return;
         const { x, y } = origin.current;
         if (
           Math.abs(event.clientX - x) > LONG_PRESS_SLOP_PX ||
           Math.abs(event.clientY - y) > LONG_PRESS_SLOP_PX
         ) {
-          clear();
+          // A scroll must not become a tap if the browser later emits a compatibility click.
+          suppressNextClick.current = true;
+          endPress();
         }
       },
-      onPointerUp: clear,
-      onPointerLeave: clear,
-      onPointerCancel: clear,
+      onPointerUp: (event: ReactPointerEvent) => {
+        if (activePointer.current !== event.pointerId) return;
+
+        // This closes the narrow race at the timer boundary: pointerup can be handled while the
+        // elapsed timer callback is queued but has not run yet. The gesture is still a hold.
+        if (performance.now() - startedAt.current >= LONG_PRESS_MS) {
+          event.preventDefault();
+          fireLongPress();
+        } else {
+          endPress();
+        }
+      },
+      onPointerLeave: () => {
+        if (activePointer.current === null) return;
+        suppressNextClick.current = true;
+        endPress();
+      },
+      onPointerCancel: () => {
+        if (activePointer.current === null) return;
+        suppressNextClick.current = true;
+        endPress();
+      },
       // Suppress the touch callout so a long-press doesn't open the OS context menu instead.
       onContextMenu: (event: ReactMouseEvent) => event.preventDefault(),
     },
@@ -158,8 +202,12 @@ export function PartCard({
         aria-label={cardLabel}
         title={cardHint}
         aria-disabled={tapDisabled}
-        onClick={() => {
-          if (longPress.consumedClick()) return;
+        onClick={(event) => {
+          if (longPress.consumedClick()) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
           if (tapDisabled) return;
           onMark(tapDelta);
         }}
