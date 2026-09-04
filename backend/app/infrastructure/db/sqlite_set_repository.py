@@ -86,7 +86,27 @@ class SqliteSetRepository:
         row = self._get_part_row(set_num, part_num, color_id)
         if row is None:
             raise EntityNotFoundError(f"part {part_num}/{color_id} not found on set {set_num}")
-        row.quantity_found = quantity_found
+        row.quantity_found = max(0, min(row.quantity_required, quantity_found))
+        row.quantity_broken = min(row.quantity_broken, row.quantity_found)
+        row.updated_at = utcnow()
+        self.session.add(row)
+        self.session.commit()
+        self.session.refresh(row)
+        return self._to_part(row)
+
+    def update_part_condition(
+        self,
+        set_num: str,
+        part_num: str,
+        color_id: int,
+        quantity_found: int,
+        quantity_broken: int,
+    ) -> Part:
+        row = self._get_part_row(set_num, part_num, color_id)
+        if row is None:
+            raise EntityNotFoundError(f"part {part_num}/{color_id} not found on set {set_num}")
+        row.quantity_found = max(0, min(row.quantity_required, quantity_found))
+        row.quantity_broken = max(0, min(row.quantity_found, quantity_broken))
         row.updated_at = utcnow()
         self.session.add(row)
         self.session.commit()
@@ -110,6 +130,7 @@ class SqliteSetRepository:
             if row is None:
                 continue
             row.quantity_found = max(0, min(row.quantity_required, update.quantity_found))
+            row.quantity_broken = min(row.quantity_broken, row.quantity_found)
             row.updated_at = utcnow()
             self.session.add(row)
             written.append(row)
@@ -166,6 +187,7 @@ class SqliteSetRepository:
                 element_id=part.element_id,
                 quantity_required=part.quantity_required,
                 quantity_found=part.quantity_found,
+                quantity_broken=part.quantity_broken,
                 is_spare=part.is_spare,
                 img_local_path=part.image_path,
             )
@@ -202,6 +224,7 @@ class SqliteSetRepository:
             element_id=row.element_id,
             quantity_required=row.quantity_required,
             quantity_found=row.quantity_found,
+            quantity_broken=row.quantity_broken,
             image_path=row.img_local_path,
             is_spare=row.is_spare,
         )

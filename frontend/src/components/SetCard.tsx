@@ -37,7 +37,7 @@ export function SetCard({ set, onRequestDelete }: SetCardProps) {
 
   return (
     <div
-      className={`relative flex h-full flex-col rounded border bg-white p-2 transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-gray-500 hover:shadow-sm ${borderClass}`}
+      className={`relative flex h-full flex-col rounded border bg-white p-2 transition-[border-color,box-shadow] duration-150 hover:border-gray-500 hover:shadow-sm ${borderClass}`}
     >
       {/* Stretched link rather than a wrapping anchor, so the delete button is a real sibling
           button instead of interactive content nested inside an <a>. */}

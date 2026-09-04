@@ -16,7 +16,13 @@ class Contributor(BaseModel):
     """The catalog id worth showing: a set number, or a fig number. Distinct from source_id, which
     for a minifig is an internal instance id and means nothing to the owner."""
     image_path: str | None
-    quantity: int
+    quantity_found: int
+    quantity_missing: int
+    quantity_broken: int
+
+    @property
+    def quantity_needed(self) -> int:
+        return self.quantity_missing + self.quantity_broken
 
 
 class PartAggregate(BaseModel):
@@ -26,7 +32,12 @@ class PartAggregate(BaseModel):
     color_name: str
     image_path: str | None
     total_missing: int
+    total_broken: int
     contributors: list[Contributor]
+
+    @property
+    def total_needed(self) -> int:
+        return self.total_missing + self.total_broken
 
 
 class SourceItem(BaseModel):
@@ -36,6 +47,12 @@ class SourceItem(BaseModel):
     color_name: str
     image_path: str | None
     quantity_missing: int
+    quantity_found: int
+    quantity_broken: int
+
+    @property
+    def quantity_needed(self) -> int:
+        return self.quantity_missing + self.quantity_broken
 
 
 class SourceAggregate(BaseModel):
@@ -48,6 +65,11 @@ class SourceAggregate(BaseModel):
     image_path: str | None
     items: list[SourceItem]
     total_missing: int
+    total_broken: int
+
+    @property
+    def total_needed(self) -> int:
+        return self.total_missing + self.total_broken
 
 
 class _Contribution(BaseModel):
@@ -63,15 +85,18 @@ class _Contribution(BaseModel):
     color_name: str
     part_image_path: str | None
     quantity_missing: int
+    quantity_found: int
+    quantity_broken: int
 
 
 class GetMissingSummaryUseCase:
-    """Aggregates every part confirmed missing across all sets and minifig instances,
+    """Aggregates every part that needs replacing across all sets and minifig instances,
     grouped either by part (default, for reordering) or by owning source.
 
     Only inventories whose sorting is finished contribute. A set still being worked through has
     pieces that simply have not turned up yet, and counting those would fill the shopping list with
-    bricks that are sitting in the unsorted pile.
+    bricks that are sitting in the unsorted pile. Missing and broken counts remain separate so a
+    caller can explain why each replacement is needed.
     """
 
     def __init__(self, set_repo: SetRepository, instance_repo: MinifigInstanceRepository):
@@ -91,7 +116,9 @@ class GetMissingSummaryUseCase:
             if not lego_set.is_sorted:
                 continue
             for part in lego_set.parts:
-                if part.is_spare or part.quantity_unaccounted <= 0:
+                if part.is_spare or (
+                    part.quantity_unaccounted <= 0 and part.quantity_broken <= 0
+                ):
                     continue
                 contributions.append(
                     _Contribution(
@@ -107,6 +134,8 @@ class GetMissingSummaryUseCase:
                         color_name=part.color_name,
                         part_image_path=part.image_path,
                         quantity_missing=part.quantity_unaccounted,
+                        quantity_found=part.quantity_found,
+                        quantity_broken=part.quantity_broken,
                     )
                 )
 
@@ -114,7 +143,7 @@ class GetMissingSummaryUseCase:
             if not instance.is_sorted:
                 continue
             for part in instance.parts:
-                if part.quantity_unaccounted <= 0:
+                if part.quantity_unaccounted <= 0 and part.quantity_broken <= 0:
                     continue
                 contributions.append(
                     _Contribution(
@@ -130,6 +159,8 @@ class GetMissingSummaryUseCase:
                         color_name=part.color_name,
                         part_image_path=part.image_path,
                         quantity_missing=part.quantity_unaccounted,
+                        quantity_found=part.quantity_found,
+                        quantity_broken=part.quantity_broken,
                     )
                 )
 
@@ -148,6 +179,7 @@ class GetMissingSummaryUseCase:
                 color_name=items[0].color_name,
                 image_path=items[0].part_image_path,
                 total_missing=sum(i.quantity_missing for i in items),
+                total_broken=sum(i.quantity_broken for i in items),
                 contributors=[
                     Contributor(
                         source_type=i.source_type,
@@ -156,14 +188,16 @@ class GetMissingSummaryUseCase:
                         name=i.name,
                         reference=i.reference,
                         image_path=i.image_path,
-                        quantity=i.quantity_missing,
+                        quantity_found=i.quantity_found,
+                        quantity_missing=i.quantity_missing,
+                        quantity_broken=i.quantity_broken,
                     )
                     for i in items
                 ],
             )
             for (part_num, color_id), items in buckets.items()
         ]
-        aggregates.sort(key=lambda a: a.total_missing, reverse=True)
+        aggregates.sort(key=lambda a: a.total_needed, reverse=True)
         return aggregates
 
     def _group_by_source(self, contributions: list[_Contribution]) -> list[SourceAggregate]:
@@ -187,12 +221,15 @@ class GetMissingSummaryUseCase:
                         color_name=i.color_name,
                         image_path=i.part_image_path,
                         quantity_missing=i.quantity_missing,
+                        quantity_found=i.quantity_found,
+                        quantity_broken=i.quantity_broken,
                     )
                     for i in items
                 ],
                 total_missing=sum(i.quantity_missing for i in items),
+                total_broken=sum(i.quantity_broken for i in items),
             )
             for (_, source_id), items in buckets.items()
         ]
-        aggregates.sort(key=lambda a: a.total_missing, reverse=True)
+        aggregates.sort(key=lambda a: a.total_needed, reverse=True)
         return aggregates

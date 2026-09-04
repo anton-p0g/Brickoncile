@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 EntityType = Literal["set", "minifig_instance"]
-MissingAction = Literal["marked_missing", "marked_found"]
+MissingAction = Literal["marked_missing", "marked_found", "marked_broken", "unmarked_broken"]
 
 
 class MissingPartRecord(BaseModel):

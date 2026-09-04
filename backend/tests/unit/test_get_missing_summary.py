@@ -5,7 +5,7 @@ from tests.unit.fakes import FakeMinifigInstanceRepository, FakeSetRepository
 SORTED_AT = "2024-01-02T00:00:00Z"
 
 
-def make_part(part_num, color_id, missing, quantity_required=4, is_spare=False):
+def make_part(part_num, color_id, missing, quantity_required=4, is_spare=False, broken=0):
     """`missing` is expressed the way the shopping list thinks about it; storage tracks found."""
     return Part(
         part_num=part_num,
@@ -15,6 +15,7 @@ def make_part(part_num, color_id, missing, quantity_required=4, is_spare=False):
         element_id=None,
         quantity_required=quantity_required,
         quantity_found=quantity_required - missing,
+        quantity_broken=broken,
         is_spare=is_spare,
     )
 
@@ -65,6 +66,24 @@ def test_excludes_fully_found_parts_and_spares():
     result = GetMissingSummaryUseCase(set_repo, FakeMinifigInstanceRepository()).execute(group_by="part")
 
     assert result == []
+
+
+def test_fully_found_broken_piece_is_included_as_replacement_needed():
+    set_repo = FakeSetRepository()
+    set_repo.save(make_set("75192-1", [make_part("3020", 15, missing=0, quantity_required=2, broken=1)]))
+    use_case = GetMissingSummaryUseCase(set_repo, FakeMinifigInstanceRepository())
+
+    by_part = use_case.execute(group_by="part")
+    assert len(by_part) == 1
+    assert by_part[0].total_missing == 0
+    assert by_part[0].total_broken == 1
+    assert by_part[0].total_needed == 1
+    assert by_part[0].contributors[0].quantity_found == 2
+    assert by_part[0].contributors[0].quantity_broken == 1
+
+    by_set = use_case.execute(group_by="set")
+    assert by_set[0].total_needed == 1
+    assert by_set[0].items[0].quantity_needed == 1
 
 
 def test_sets_still_being_sorted_are_excluded_entirely():

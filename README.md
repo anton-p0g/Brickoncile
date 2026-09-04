@@ -62,6 +62,7 @@ It is useful for checking second-hand sets, rebuilding sets from a mixed collect
 
 - View every required piece as a visual grid.
 - Confirm a whole part line or record a partial quantity by long pressing the icon.
+- Record how many found pieces are broken from the same condition editor.
 - Switch between finding pieces and marking pieces as missing.
 - Filter by part number, name, colour, or completion state.
 - Confirm all currently filtered parts at once.

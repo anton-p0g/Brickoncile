@@ -25,6 +25,19 @@ class AdjustSetPartFoundUseCase:
         new_quantity = max(0, min(part.quantity_required, part.quantity_found + found_delta))
 
         if new_quantity != part.quantity_found:
+            if new_quantity < part.quantity_broken:
+                self.history_repo.append(
+                    MissingPartRecord(
+                        entity_type="set",
+                        entity_id=set_num,
+                        part_num=part_num,
+                        color_id=color_id,
+                        action="unmarked_broken",
+                        quantity_before=part.quantity_broken,
+                        quantity_after=new_quantity,
+                        timestamp=datetime.now(UTC),
+                    )
+                )
             self.history_repo.append(
                 MissingPartRecord(
                     entity_type="set",

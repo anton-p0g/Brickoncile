@@ -5,7 +5,8 @@ class Part(BaseModel):
     """A part line in a set or minifig inventory.
 
     `quantity_found` is the tracked value: pieces physically confirmed present while sorting.
-    Missing is derived from it rather than stored alongside it, so the two cannot disagree.
+    `quantity_broken` is a condition within that found count, never an additional piece. Missing
+    is derived from found rather than stored alongside it, so broken pieces are not called missing.
     """
 
     part_num: str
@@ -15,6 +16,7 @@ class Part(BaseModel):
     element_id: str | None = None
     quantity_required: int
     quantity_found: int = 0
+    quantity_broken: int = 0
     image_path: str | None = None
     is_spare: bool = False
 

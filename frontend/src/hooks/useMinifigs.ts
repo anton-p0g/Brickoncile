@@ -14,6 +14,7 @@ import {
   resyncMinifigInstance,
   setMinifigInstancePartsFound,
   updateMinifigInstanceSorting,
+  updateMinifigPartCondition,
 } from "../api/client";
 import type {
   MinifigInstanceDetail,
@@ -21,7 +22,14 @@ import type {
   PartFoundTarget,
   PartOut,
 } from "../api/types";
-import { applyFoundDelta, replacePart, replaceParts, totalFound, totalUnaccounted } from "../lib/parts";
+import {
+  applyFoundDelta,
+  applyPartCondition,
+  replacePart,
+  replaceParts,
+  totalFound,
+  totalUnaccounted,
+} from "../lib/parts";
 
 export const minifigsKeys = {
   all: ["minifigs", "instances"] as const,
@@ -90,6 +98,61 @@ export function useAdjustMinifigPartFound(instanceId: string) {
       queryClient.setQueryData<MinifigInstanceSummary[]>(minifigsKeys.all, (current) =>
         current?.map((summary) =>
           summary.instance_id === instanceId ? { ...summary, ...response.instance_summary } : summary,
+        ),
+      );
+      queryClient.invalidateQueries({ queryKey: minifigsKeys.historyAll(instanceId) });
+      queryClient.invalidateQueries({ queryKey: ["missing-parts"] });
+      queryClient.invalidateQueries({ queryKey: ["parts", "search"] });
+    },
+  });
+}
+
+export function useUpdateMinifigPartCondition(instanceId: string) {
+  const queryClient = useQueryClient();
+  const detailKey = minifigsKeys.detail(instanceId);
+
+  return useMutation({
+    mutationFn: ({
+      partNum,
+      colorId,
+      quantityFound,
+      quantityBroken,
+    }: {
+      partNum: string;
+      colorId: number;
+      quantityFound: number;
+      quantityBroken: number;
+    }) => updateMinifigPartCondition(instanceId, partNum, colorId, quantityFound, quantityBroken),
+    onMutate: async ({ partNum, colorId, quantityFound, quantityBroken }) => {
+      await queryClient.cancelQueries({ queryKey: detailKey });
+      const previous = queryClient.getQueryData<MinifigInstanceDetail>(detailKey);
+      if (previous) {
+        const parts = applyPartCondition(
+          previous.parts,
+          partNum,
+          colorId,
+          quantityFound,
+          quantityBroken,
+        );
+        queryClient.setQueryData<MinifigInstanceDetail>(
+          detailKey,
+          withInstanceTotals(previous, parts),
+        );
+      }
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) queryClient.setQueryData(detailKey, context.previous);
+    },
+    onSuccess: (response) => {
+      queryClient.setQueryData<MinifigInstanceDetail>(detailKey, (current) =>
+        current ? withInstanceTotals(current, replacePart(current.parts, response.part)) : current,
+      );
+      queryClient.setQueryData<MinifigInstanceSummary[]>(minifigsKeys.all, (current) =>
+        current?.map((summary) =>
+          summary.instance_id === instanceId
+            ? { ...summary, ...response.instance_summary }
+            : summary,
         ),
       );
       queryClient.invalidateQueries({ queryKey: minifigsKeys.historyAll(instanceId) });

@@ -14,6 +14,7 @@ import {
   useSetHistory,
   useSetMinifigs,
   useSetPartsFound,
+  useUpdateSetPartCondition,
   useUpdateSetSorting,
 } from "../hooks/useSets";
 import { completionPercent } from "../lib/completion";
@@ -52,6 +53,7 @@ export function SetDetailPage() {
   const { data: set, isLoading, error } = useSet(setNum);
   const adjustFound = useAdjustSetPartFound(setNum);
   const setPartsFound = useSetPartsFound(setNum);
+  const updateCondition = useUpdateSetPartCondition(setNum);
   const updateSorting = useUpdateSetSorting(setNum);
   const resync = useResyncSet(setNum);
   const minifigs = useSetMinifigs(setNum);
@@ -110,6 +112,9 @@ export function SetDetailPage() {
         parts={set.parts}
         status={set.status}
         onMark={(partNum, colorId, foundDelta) => adjustFound.mutate({ partNum, colorId, foundDelta })}
+        onSetCondition={(partNum, colorId, quantityFound, quantityBroken) =>
+          updateCondition.mutate({ partNum, colorId, quantityFound, quantityBroken })
+        }
         onSetPartsFound={(targets) => setPartsFound.mutateAsync(targets)}
         isBulkPending={setPartsFound.isPending}
       />

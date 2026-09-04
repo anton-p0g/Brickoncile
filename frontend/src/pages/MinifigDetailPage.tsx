@@ -19,6 +19,7 @@ import {
   useMinifigInstancePartsFound,
   useResyncMinifigInstance,
   useUpdateMinifigSorting,
+  useUpdateMinifigPartCondition,
 } from "../hooks/useMinifigs";
 import { completionPercent } from "../lib/completion";
 
@@ -41,6 +42,7 @@ export function MinifigDetailPage() {
   const changeFigNum = useChangeMinifigFigNum();
   const adjustFound = useAdjustMinifigPartFound(instanceId);
   const setPartsFound = useMinifigInstancePartsFound(instanceId);
+  const updateCondition = useUpdateMinifigPartCondition(instanceId);
   const updateSorting = useUpdateMinifigSorting(instanceId);
   const resync = useResyncMinifigInstance(instanceId);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -176,6 +178,9 @@ export function MinifigDetailPage() {
         status={instance.status}
         onMark={(partNum, colorId, foundDelta) =>
           adjustFound.mutate({ partNum, colorId, foundDelta })
+        }
+        onSetCondition={(partNum, colorId, quantityFound, quantityBroken) =>
+          updateCondition.mutate({ partNum, colorId, quantityFound, quantityBroken })
         }
         onSetPartsFound={(targets) => setPartsFound.mutateAsync(targets)}
         isBulkPending={setPartsFound.isPending}

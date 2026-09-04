@@ -48,6 +48,7 @@ class SetPartTable(SQLModel, table=True):
     element_id: str | None = None
     quantity_required: int
     quantity_found: int = 0
+    quantity_broken: int = 0
     is_spare: bool = False
     img_local_path: str | None = None
     source_img_url: str | None = None
@@ -111,6 +112,7 @@ class MinifigInstancePartTable(SQLModel, table=True):
     element_id: str | None = None
     quantity_required: int
     quantity_found: int = 0
+    quantity_broken: int = 0
     img_local_path: str | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

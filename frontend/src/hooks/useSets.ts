@@ -11,9 +11,17 @@ import {
   resyncSet,
   setSetPartsFound,
   updateSetSorting,
+  updateSetPartCondition,
 } from "../api/client";
 import type { PartFoundTarget, PartOut, SetDetail, SetSummary } from "../api/types";
-import { applyFoundDelta, replacePart, replaceParts, totalFound, totalUnaccounted } from "../lib/parts";
+import {
+  applyFoundDelta,
+  applyPartCondition,
+  replacePart,
+  replaceParts,
+  totalFound,
+  totalUnaccounted,
+} from "../lib/parts";
 import { minifigsKeys } from "./useMinifigs";
 
 export const setsKeys = {
@@ -112,6 +120,56 @@ export function useAdjustSetPartFound(setNum: string) {
       );
       queryClient.setQueryData<SetSummary[]>(setsKeys.all, (current) =>
         current?.map((summary) => (summary.set_num === setNum ? { ...summary, ...response.set_summary } : summary)),
+      );
+      queryClient.invalidateQueries({ queryKey: setsKeys.historyAll(setNum) });
+      queryClient.invalidateQueries({ queryKey: ["missing-parts"] });
+      queryClient.invalidateQueries({ queryKey: ["parts", "search"] });
+    },
+  });
+}
+
+export function useUpdateSetPartCondition(setNum: string) {
+  const queryClient = useQueryClient();
+  const detailKey = setsKeys.detail(setNum);
+
+  return useMutation({
+    mutationFn: ({
+      partNum,
+      colorId,
+      quantityFound,
+      quantityBroken,
+    }: {
+      partNum: string;
+      colorId: number;
+      quantityFound: number;
+      quantityBroken: number;
+    }) => updateSetPartCondition(setNum, partNum, colorId, quantityFound, quantityBroken),
+    onMutate: async ({ partNum, colorId, quantityFound, quantityBroken }) => {
+      await queryClient.cancelQueries({ queryKey: detailKey });
+      const previous = queryClient.getQueryData<SetDetail>(detailKey);
+      if (previous) {
+        const parts = applyPartCondition(
+          previous.parts,
+          partNum,
+          colorId,
+          quantityFound,
+          quantityBroken,
+        );
+        queryClient.setQueryData<SetDetail>(detailKey, withSetTotals(previous, parts));
+      }
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) queryClient.setQueryData(detailKey, context.previous);
+    },
+    onSuccess: (response) => {
+      queryClient.setQueryData<SetDetail>(detailKey, (current) =>
+        current ? withSetTotals(current, replacePart(current.parts, response.part)) : current,
+      );
+      queryClient.setQueryData<SetSummary[]>(setsKeys.all, (current) =>
+        current?.map((summary) =>
+          summary.set_num === setNum ? { ...summary, ...response.set_summary } : summary,
+        ),
       );
       queryClient.invalidateQueries({ queryKey: setsKeys.historyAll(setNum) });
       queryClient.invalidateQueries({ queryKey: ["missing-parts"] });

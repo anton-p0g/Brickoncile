@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom";
 import type { ContributorOut, PartAggregateOut } from "../api/types";
 import { markKey, sourceHref } from "../lib/sources";
+import { BrokenBrickIcon } from "./BrokenBrickIcon";
 import { ColorSwatch } from "./ColorSwatch";
 
 interface MissingPartCardProps {
   aggregate: PartAggregateOut;
   /** Opens the part image full size. */
   onZoom: () => void;
-  /** Confirms one piece of this part present in that one source. */
-  onMarkFound: (contributor: ContributorOut) => void;
+  /** Resolves exactly one piece of the selected condition in that source. */
+  onResolve: (contributor: ContributorOut, condition: "missing" | "broken") => void;
   /** markKey of the write in flight, if any. */
   pendingKey: string | null;
 }
@@ -20,9 +21,13 @@ interface MissingPartCardProps {
  * different problem than one missing from a single set, and each is a link straight into the
  * inventory that wants it.
  */
-export function MissingPartCard({ aggregate, onZoom, onMarkFound, pendingKey }: MissingPartCardProps) {
+export function MissingPartCard({ aggregate, onZoom, onResolve, pendingKey }: MissingPartCardProps) {
+  const borderTone = aggregate.total_missing > 0
+    ? "border-red-200 hover:border-red-500"
+    : "border-violet-200 hover:border-violet-500";
+
   return (
-    <div className="flex flex-col gap-1.5 rounded border border-red-200 bg-white p-2 transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-red-500 hover:shadow-sm">
+    <div className={`flex flex-col gap-1.5 rounded border bg-white p-2 transition-[border-color,box-shadow] duration-150 hover:shadow-sm ${borderTone}`}>
       <div className="relative">
         {/* Disabled without an image, rather than a target that looks live and does nothing. */}
         <button
@@ -41,12 +46,23 @@ export function MissingPartCard({ aggregate, onZoom, onMarkFound, pendingKey }: 
             />
           )}
         </button>
-        <span
-          title={`${aggregate.total_missing} pieces missing in total`}
-          className="pointer-events-none absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 font-mono text-[10px] font-bold text-white"
-        >
-          {aggregate.total_missing}
-        </span>
+        {aggregate.total_broken > 0 && (
+          <span
+            title={`${aggregate.total_broken} broken ${aggregate.total_broken === 1 ? "piece" : "pieces"} to replace`}
+            className="pointer-events-none absolute top-0.5 left-0.5 flex h-5 min-w-5 items-center justify-center gap-0.5 rounded-full bg-violet-700 px-1 font-mono text-[10px] font-bold text-white"
+          >
+            <BrokenBrickIcon className="h-3.5 w-3.5" />
+            {aggregate.total_broken}
+          </span>
+        )}
+        {aggregate.total_missing > 0 && (
+          <span
+            title={`${aggregate.total_missing} pieces missing in total`}
+            className="pointer-events-none absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 font-mono text-[10px] font-bold text-white"
+          >
+            {aggregate.total_missing}
+          </span>
+        )}
       </div>
 
       {/* To the part search, which also lists the inventories that already have this piece. */}
@@ -93,22 +109,49 @@ export function MissingPartCard({ aggregate, onZoom, onMarkFound, pendingKey }: 
               >
                 {contributor.reference}
               </span>
-              <span className="flex-shrink-0 font-mono text-[10px] font-bold text-red-700">
-                &times;{contributor.quantity}
-              </span>
+              {contributor.quantity_missing > 0 && (
+                <span className="flex-shrink-0 font-mono text-[10px] font-bold text-red-700">
+                  &times;{contributor.quantity_missing}
+                </span>
+              )}
+              {contributor.quantity_broken > 0 && (
+                <span
+                  title={`${contributor.quantity_broken} broken`}
+                  className="flex flex-shrink-0 items-center gap-px font-mono text-[10px] font-bold text-violet-700"
+                >
+                  <BrokenBrickIcon className="h-3 w-3" />
+                  {contributor.quantity_broken}
+                </span>
+              )}
             </Link>
-            <button
-              type="button"
-              onClick={() => onMarkFound(contributor)}
-              disabled={
-                pendingKey === markKey(contributor.source_id, aggregate.part_num, aggregate.color_id)
-              }
-              title={`Confirm one present in ${contributor.name}`}
-              aria-label={`Confirm one ${aggregate.part_num} ${aggregate.color_name} present in ${contributor.name}`}
-              className="ui-control h-4 w-4 flex-shrink-0 border-green-300 text-[9px] font-bold text-green-700 hover:border-green-500 hover:bg-green-50 disabled:opacity-40"
-            >
-              &#10003;
-            </button>
+            {contributor.quantity_missing > 0 && (
+              <button
+                type="button"
+                onClick={() => onResolve(contributor, "missing")}
+                disabled={
+                  pendingKey === markKey(contributor.source_id, aggregate.part_num, aggregate.color_id)
+                }
+                title={`Confirm one missing piece found in ${contributor.name}`}
+                aria-label={`Confirm one missing ${aggregate.part_num} ${aggregate.color_name} found in ${contributor.name}`}
+                className="ui-control h-4 w-4 flex-shrink-0 border-green-300 text-[9px] font-bold text-green-700 hover:border-green-500 hover:bg-green-50 disabled:opacity-40"
+              >
+                &#10003;
+              </button>
+            )}
+            {contributor.quantity_broken > 0 && (
+              <button
+                type="button"
+                onClick={() => onResolve(contributor, "broken")}
+                disabled={
+                  pendingKey === markKey(contributor.source_id, aggregate.part_num, aggregate.color_id)
+                }
+                title={`Confirm one broken piece replaced in ${contributor.name}`}
+                aria-label={`Confirm one broken ${aggregate.part_num} ${aggregate.color_name} replaced in ${contributor.name}`}
+                className="ui-control h-4 w-4 flex-shrink-0 border-violet-300 text-[9px] font-bold text-violet-700 hover:border-violet-500 hover:bg-violet-50 disabled:opacity-40"
+              >
+                &#10003;
+              </button>
+            )}
           </div>
         ))}
       </div>

@@ -29,10 +29,25 @@ def run_migrations(engine: Engine) -> None:
     with Session(engine) as session:
         _migrate_missing_to_found(session, "set_parts")
         _migrate_missing_to_found(session, "minifig_instance_parts")
+        _add_quantity_broken(session, "set_parts")
+        _add_quantity_broken(session, "minifig_instance_parts")
         _add_sorting_finished_at(session, "sets")
         _add_sorting_finished_at(session, "minifig_instances")
         _allow_loose_minifig_instances(session)
         session.commit()
+
+
+def _add_quantity_broken(session: Session, table: str) -> None:
+    """Add the condition count without changing what existing found counts mean."""
+    if not _table_exists(session, table):
+        return
+    if "quantity_broken" in _columns(session, table):
+        return
+
+    logger.info("migrating %s: adding quantity_broken", table)
+    session.exec(  # type: ignore[call-overload]
+        text(f"ALTER TABLE {table} ADD COLUMN quantity_broken INTEGER NOT NULL DEFAULT 0")
+    )
 
 
 def _migrate_missing_to_found(session: Session, table: str) -> None:

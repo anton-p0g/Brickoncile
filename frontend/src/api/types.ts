@@ -24,6 +24,8 @@ export interface PartOut {
   quantity_required: number;
   /** Pieces confirmed physically present. The tracked value; missing is derived from it. */
   quantity_found: number;
+  /** Found pieces recorded as broken. Always between zero and quantity_found. */
+  quantity_broken: number;
   /** required - found. Reads as "missing" only once the owner finished sorting. */
   quantity_unaccounted: number;
   is_fully_found: boolean;
@@ -222,7 +224,10 @@ export interface ContributorOut {
    *  minifig is an internal instance id. */
   reference: string;
   image_url: string | null;
-  quantity: number;
+  quantity_found: number;
+  quantity_missing: number;
+  quantity_broken: number;
+  quantity_needed: number;
 }
 
 export interface PartAggregateOut {
@@ -232,6 +237,8 @@ export interface PartAggregateOut {
   color_name: string;
   image_url: string | null;
   total_missing: number;
+  total_broken: number;
+  total_needed: number;
   contributors: ContributorOut[];
 }
 
@@ -242,6 +249,9 @@ export interface SourceItemOut {
   color_name: string;
   image_url: string | null;
   quantity_missing: number;
+  quantity_found: number;
+  quantity_broken: number;
+  quantity_needed: number;
 }
 
 export interface SourceAggregateOut {
@@ -254,6 +264,8 @@ export interface SourceAggregateOut {
   image_url: string | null;
   items: SourceItemOut[];
   total_missing: number;
+  total_broken: number;
+  total_needed: number;
 }
 
 export type GroupBy = "part" | "set";

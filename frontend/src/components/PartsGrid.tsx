@@ -21,6 +21,12 @@ interface PartsGridProps {
   parts: PartOut[];
   status: SortingStatus;
   onMark: (partNum: string, colorId: number, foundDelta: number) => void;
+  onSetCondition: (
+    partNum: string,
+    colorId: number,
+    quantityFound: number,
+    quantityBroken: number,
+  ) => void;
   /** Writes many parts' found counts in one request. Absent on read-only usages. */
   onSetPartsFound?: (targets: PartFoundTarget[]) => Promise<unknown>;
   isBulkPending?: boolean;
@@ -54,6 +60,7 @@ export function PartsGrid({
   parts,
   status,
   onMark,
+  onSetCondition,
   onSetPartsFound,
   isBulkPending,
 }: PartsGridProps) {
@@ -135,6 +142,47 @@ export function PartsGrid({
       });
     },
     [onMark],
+  );
+
+  const handleSetCondition = useCallback(
+    (part: PartOut, requestedFound: number, requestedBroken: number) => {
+      const quantityFound = Math.max(
+        0,
+        Math.min(part.quantity_required, Math.round(requestedFound)),
+      );
+      const quantityBroken = Math.max(
+        0,
+        Math.min(quantityFound, Math.round(requestedBroken)),
+      );
+      if (
+        quantityFound === part.quantity_found &&
+        quantityBroken === part.quantity_broken
+      )
+        return;
+
+      onSetCondition(
+        part.part_num,
+        part.color_id,
+        quantityFound,
+        quantityBroken,
+      );
+
+      const previousFound = part.quantity_found;
+      const previousBroken = part.quantity_broken;
+      const label = `${part.part_num} ${part.color_name}`;
+      setLastChange({
+        undo: () =>
+          onSetCondition(
+            part.part_num,
+            part.color_id,
+            previousFound,
+            previousBroken,
+          ),
+        timeoutMs: UNDO_TIMEOUT_MS,
+        message: `${label}: ${quantityFound} of ${part.quantity_required} found, ${quantityBroken} broken`,
+      });
+    },
+    [onSetCondition],
   );
 
   function undoLastChange() {
@@ -244,8 +292,8 @@ export function PartsGrid({
 
       <p className="px-2 pt-2 text-xs text-gray-400">
         {mode === "find"
-          ? "Tap a card to confirm every copy of that piece is present, long-press for a partial count"
-          : "Tap a card to mark one more piece missing, tap the red count to give one back"}
+          ? "Tap a card to confirm every copy is found, long-press to set found and broken counts"
+          : "Tap a card to mark one missing, tap the red count to give one back, or long-press to edit condition"}
       </p>
 
       <div className="grid grid-cols-3 gap-2 p-2 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9">
@@ -268,7 +316,9 @@ export function PartsGrid({
       {stepperPart && (
         <PartQuantityStepper
           part={stepperPart}
-          onMark={(foundDelta) => handleMark(stepperPart, foundDelta)}
+          onSetCondition={(quantityFound, quantityBroken) =>
+            handleSetCondition(stepperPart, quantityFound, quantityBroken)
+          }
           onClose={() => setStepperKey(null)}
         />
       )}

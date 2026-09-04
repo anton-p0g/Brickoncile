@@ -55,6 +55,19 @@ class SetPartsFoundUseCase:
             changed.append(
                 PartFoundUpdate(part_num=part.part_num, color_id=part.color_id, quantity_found=clamped)
             )
+            if clamped < part.quantity_broken:
+                self.history_repo.append(
+                    MissingPartRecord(
+                        entity_type=entity_type,
+                        entity_id=entity_id,
+                        part_num=part.part_num,
+                        color_id=part.color_id,
+                        action="unmarked_broken",
+                        quantity_before=part.quantity_broken,
+                        quantity_after=clamped,
+                        timestamp=datetime.now(UTC),
+                    )
+                )
             self.history_repo.append(
                 MissingPartRecord(
                     entity_type=entity_type,

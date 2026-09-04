@@ -192,7 +192,26 @@ class FakeSetRepository:
             raise EntityNotFoundError(set_num)
         for p in s.parts:
             if p.part_num == part_num and p.color_id == color_id and not p.is_spare:
-                p.quantity_found = quantity_found
+                p.quantity_found = max(0, min(p.quantity_required, quantity_found))
+                p.quantity_broken = min(p.quantity_broken, p.quantity_found)
+                return p.model_copy()
+        raise EntityNotFoundError(f"{part_num}/{color_id}")
+
+    def update_part_condition(
+        self,
+        set_num: str,
+        part_num: str,
+        color_id: int,
+        quantity_found: int,
+        quantity_broken: int,
+    ) -> Part:
+        s = self._sets.get(set_num)
+        if s is None:
+            raise EntityNotFoundError(set_num)
+        for p in s.parts:
+            if p.part_num == part_num and p.color_id == color_id and not p.is_spare:
+                p.quantity_found = max(0, min(p.quantity_required, quantity_found))
+                p.quantity_broken = max(0, min(p.quantity_found, quantity_broken))
                 return p.model_copy()
         raise EntityNotFoundError(f"{part_num}/{color_id}")
 
@@ -207,6 +226,7 @@ class FakeSetRepository:
             if part is None:
                 continue
             part.quantity_found = max(0, min(part.quantity_required, update.quantity_found))
+            part.quantity_broken = min(part.quantity_broken, part.quantity_found)
             written.append(part.model_copy())
         return written
 
@@ -303,7 +323,7 @@ class FakeMinifigInstanceRepository:
             fig_name=fig_name,
             image_path=image_path,
             source_set_num=source_set_num,
-            parts=[p.model_copy(update={"quantity_found": 0}) for p in parts_template],
+            parts=[p.model_copy(update={"quantity_found": 0, "quantity_broken": 0}) for p in parts_template],
         )
         self._instances[instance.id] = instance
         return instance.model_copy(deep=True)
@@ -332,7 +352,26 @@ class FakeMinifigInstanceRepository:
             raise EntityNotFoundError(instance_id)
         for p in instance.parts:
             if p.part_num == part_num and p.color_id == color_id:
-                p.quantity_found = quantity_found
+                p.quantity_found = max(0, min(p.quantity_required, quantity_found))
+                p.quantity_broken = min(p.quantity_broken, p.quantity_found)
+                return p.model_copy()
+        raise EntityNotFoundError(f"{part_num}/{color_id}")
+
+    def update_part_condition(
+        self,
+        instance_id: str,
+        part_num: str,
+        color_id: int,
+        quantity_found: int,
+        quantity_broken: int,
+    ) -> Part:
+        instance = self._instances.get(instance_id)
+        if instance is None:
+            raise EntityNotFoundError(instance_id)
+        for p in instance.parts:
+            if p.part_num == part_num and p.color_id == color_id:
+                p.quantity_found = max(0, min(p.quantity_required, quantity_found))
+                p.quantity_broken = max(0, min(p.quantity_found, quantity_broken))
                 return p.model_copy()
         raise EntityNotFoundError(f"{part_num}/{color_id}")
 
@@ -347,6 +386,7 @@ class FakeMinifigInstanceRepository:
             if part is None:
                 continue
             part.quantity_found = max(0, min(part.quantity_required, update.quantity_found))
+            part.quantity_broken = min(part.quantity_broken, part.quantity_found)
             written.append(part.model_copy())
         return written
 
@@ -366,7 +406,9 @@ class FakeMinifigInstanceRepository:
                 key = (template_part.part_num, template_part.color_id)
                 current = by_key.get(key)
                 if current is None:
-                    instance.parts.append(template_part.model_copy(update={"quantity_found": 0}))
+                    instance.parts.append(
+                        template_part.model_copy(update={"quantity_found": 0, "quantity_broken": 0})
+                    )
                 else:
                     current.color_name = template_part.color_name
                     current.name = template_part.name

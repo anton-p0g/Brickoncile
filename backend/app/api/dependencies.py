@@ -29,6 +29,7 @@ from app.application.use_cases.search_parts import SearchPartsUseCase
 from app.application.use_cases.set_parts_found import SetPartsFoundUseCase
 from app.application.use_cases.sync_minifig_roster import SyncMinifigRosterUseCase
 from app.application.use_cases.sync_themes import SyncThemesUseCase
+from app.application.use_cases.update_part_condition import UpdatePartConditionUseCase
 from app.application.use_cases.update_sorting_state import UpdateSortingStateUseCase
 from app.domain.repositories import ImageCache, MinifigRecognizer, PartsCatalogClient
 from app.infrastructure.db.collection_manager import CollectionManager
@@ -179,6 +180,14 @@ def get_adjust_minifig_part_found_use_case(
     instance_repo: InstanceRepoDep, history_repo: HistoryRepoDep
 ) -> AdjustMinifigPartFoundUseCase:
     return AdjustMinifigPartFoundUseCase(instance_repo, history_repo)
+
+
+def get_update_part_condition_use_case(
+    set_repo: SetRepoDep,
+    instance_repo: InstanceRepoDep,
+    history_repo: HistoryRepoDep,
+) -> UpdatePartConditionUseCase:
+    return UpdatePartConditionUseCase(set_repo, instance_repo, history_repo)
 
 
 def get_update_sorting_state_use_case(

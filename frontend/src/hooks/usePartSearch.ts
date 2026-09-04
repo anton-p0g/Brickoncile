@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { adjustMinifigPartFound, adjustSetPartFound, searchParts } from "../api/client";
+import {
+  adjustMinifigPartFound,
+  adjustSetPartFound,
+  searchParts,
+  updateMinifigPartCondition,
+  updateSetPartCondition,
+} from "../api/client";
 import type { PartSourceOut } from "../api/types";
 import { minifigsKeys } from "./useMinifigs";
 import { setsKeys } from "./useSets";
@@ -28,12 +34,25 @@ export interface MarkFoundSource {
   source_id: string;
 }
 
-interface MarkFromSearchVariables {
+interface MarkFoundVariables {
   source: MarkFoundSource;
   partNum: string;
   colorId: number;
   foundDelta: number;
+  quantityFound?: never;
+  quantityBroken?: never;
 }
+
+interface UpdateConditionVariables {
+  source: MarkFoundSource;
+  partNum: string;
+  colorId: number;
+  foundDelta?: never;
+  quantityFound: number;
+  quantityBroken: number;
+}
+
+type MarkFromSearchVariables = MarkFoundVariables | UpdateConditionVariables;
 
 /**
  * Mark a piece found straight from a list that spans inventories — the part search, or the missing
@@ -51,11 +70,32 @@ export function useMarkFoundFromSearch() {
   return useMutation({
     // The two endpoints return differently-shaped summaries and neither is used here, since the
     // affected queries are refetched rather than patched. Discard both for one mutation type.
-    mutationFn: async ({ source, partNum, colorId, foundDelta }: MarkFromSearchVariables): Promise<void> => {
+    mutationFn: async (variables: MarkFromSearchVariables): Promise<void> => {
+      const { source, partNum, colorId } = variables;
       if (source.source_type === "set") {
-        await adjustSetPartFound(source.source_id, partNum, colorId, foundDelta);
+        if (variables.foundDelta !== undefined) {
+          await adjustSetPartFound(source.source_id, partNum, colorId, variables.foundDelta);
+        } else {
+          await updateSetPartCondition(
+            source.source_id,
+            partNum,
+            colorId,
+            variables.quantityFound,
+            variables.quantityBroken,
+          );
+        }
       } else {
-        await adjustMinifigPartFound(source.source_id, partNum, colorId, foundDelta);
+        if (variables.foundDelta !== undefined) {
+          await adjustMinifigPartFound(source.source_id, partNum, colorId, variables.foundDelta);
+        } else {
+          await updateMinifigPartCondition(
+            source.source_id,
+            partNum,
+            colorId,
+            variables.quantityFound,
+            variables.quantityBroken,
+          );
+        }
       }
     },
 

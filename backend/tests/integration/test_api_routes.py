@@ -115,6 +115,7 @@ def test_add_unknown_set_returns_404(client):
 
 
 FOUND = "/api/sets/75192-1/parts/3001/colors/0/found"
+CONDITION = "/api/sets/75192-1/parts/3001/colors/0/condition"
 SORTING = "/api/sets/75192-1/sorting"
 
 
@@ -155,6 +156,43 @@ def test_partial_progress_reports_sorting_and_owes_nothing_yet(client):
     assert resp.json()["set_summary"]["status"] == "sorting"
     assert resp.json()["set_summary"]["quantity_missing_total"] == 0
     # Still unfinished, so the three unfound pieces stay off the shopping list.
+    assert client.get("/api/missing-parts", params={"group_by": "part"}).json() == []
+
+
+def test_a_broken_piece_stays_found_and_is_returned_as_condition(client):
+    client.post("/api/sets", json={"set_num": "75192-1"})
+
+    resp = client.post(CONDITION, json={"quantity_found": 1, "quantity_broken": 1})
+
+    assert resp.status_code == 200
+    assert resp.json()["part"]["quantity_found"] == 1
+    assert resp.json()["part"]["quantity_broken"] == 1
+    assert resp.json()["part"]["quantity_unaccounted"] == 3
+
+    finish_sorting(client)
+    assert client.get("/api/missing-parts", params={"group_by": "part"}).json()[0][
+        "total_missing"
+    ] == 3
+    actions = [entry["action"] for entry in client.get("/api/sets/75192-1/history").json()]
+    assert actions == ["marked_found", "marked_broken"]
+
+
+def test_fully_found_broken_piece_appears_in_replacement_list(client):
+    client.post("/api/sets", json={"set_num": "75192-1"})
+    client.post(CONDITION, json={"quantity_found": 4, "quantity_broken": 1})
+    finish_sorting(client)
+
+    summary = client.get("/api/missing-parts", params={"group_by": "part"}).json()
+
+    assert len(summary) == 1
+    assert summary[0]["total_missing"] == 0
+    assert summary[0]["total_broken"] == 1
+    assert summary[0]["total_needed"] == 1
+    assert summary[0]["contributors"][0]["quantity_found"] == 4
+    assert summary[0]["contributors"][0]["quantity_broken"] == 1
+
+    replaced = client.post(CONDITION, json={"quantity_found": 4, "quantity_broken": 0})
+    assert replaced.json()["part"]["quantity_found"] == 4
     assert client.get("/api/missing-parts", params={"group_by": "part"}).json() == []
 
 
@@ -393,6 +431,20 @@ def test_minifig_instance_tracks_found_and_sorting_independently(client):
     overview = client.get("/api/minifigs/instances").json()[0]
     assert overview["quantity_found_total"] == 1
     assert overview["is_complete"] is True
+
+
+def test_single_piece_minifig_part_can_be_found_and_broken(client):
+    client.post("/api/sets", json={"set_num": "75192-1"})
+    instance_id = client.get("/api/minifigs/instances").json()[0]["instance_id"]
+    condition_path = (
+        f"/api/minifigs/instances/{instance_id}/parts/3624/colors/14/condition"
+    )
+
+    resp = client.post(condition_path, json={"quantity_found": 1, "quantity_broken": 1})
+
+    assert resp.status_code == 200
+    assert resp.json()["part"]["quantity_broken"] == 1
+    assert resp.json()["instance_summary"]["status"] == "complete"
 
 
 def test_minifig_sorting_endpoint_converts_unfound_to_missing(client):

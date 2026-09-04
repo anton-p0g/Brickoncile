@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import type { SourceAggregateOut, SourceItemOut } from "../api/types";
 import { markKey, sourceHref } from "../lib/sources";
+import { BrokenBrickIcon } from "./BrokenBrickIcon";
 import { ColorSwatch } from "./ColorSwatch";
 
 interface MissingSourceSectionProps {
@@ -8,7 +9,7 @@ interface MissingSourceSectionProps {
   onZoom: (item: SourceItemOut) => void;
   /** The set's or figure's own image, full size. */
   onZoomSource: () => void;
-  onMarkFound: (item: SourceItemOut) => void;
+  onResolve: (item: SourceItemOut, condition: "missing" | "broken") => void;
   /** markKey of the write in flight, so only that one card shows as busy. */
   pendingKey: string | null;
   isOpen: boolean;
@@ -29,7 +30,7 @@ export function MissingSourceSection({
   aggregate,
   onZoom,
   onZoomSource,
-  onMarkFound,
+  onResolve,
   pendingKey,
   isOpen,
   onToggle,
@@ -102,9 +103,19 @@ export function MissingSourceSection({
           </div>
         </div>
 
-        <span className="flex-shrink-0 rounded bg-red-600 px-1.5 py-0.5 font-mono text-[11px] font-bold text-white">
-          {aggregate.total_missing} missing
-        </span>
+        <div className="relative z-20 flex flex-shrink-0 items-center gap-1 pointer-events-none">
+          {aggregate.total_missing > 0 && (
+            <span className="rounded bg-red-600 px-1.5 py-0.5 font-mono text-[11px] font-bold text-white">
+              {aggregate.total_missing} missing
+            </span>
+          )}
+          {aggregate.total_broken > 0 && (
+            <span className="flex items-center gap-1 rounded bg-violet-700 px-1.5 py-0.5 font-mono text-[11px] font-bold text-white">
+              <BrokenBrickIcon className="h-3.5 w-3.5" />
+              {aggregate.total_broken} broken
+            </span>
+          )}
+        </div>
         {/* The caret a dropdown would have, on the side one expects it. Purely a visual affordance
             — the overlay behind it is what toggles — so it is hidden from screen readers, which
             would otherwise hear the same control twice, and it must not swallow the click either:
@@ -127,7 +138,12 @@ export function MissingSourceSection({
           {aggregate.items.map((item) => {
             const key = markKey(aggregate.source_id, item.part_num, item.color_id);
             return (
-              <div key={key} className="relative flex flex-col gap-1 rounded border border-red-200 bg-white p-1.5">
+              <div
+                key={key}
+                className={`relative flex flex-col gap-1 rounded border bg-white p-1.5 ${
+                  item.quantity_missing > 0 ? "border-red-200" : "border-violet-200"
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => onZoom(item)}
@@ -162,17 +178,50 @@ export function MissingSourceSection({
                   {item.part_name}
                 </div>
 
-                {/* Doubles as the count and the action: tap it when one of them turns up. */}
-                <button
-                  type="button"
-                  onClick={() => onMarkFound(item)}
-                  disabled={pendingKey === key}
-                  title={`${item.quantity_missing} missing — tap to confirm one present`}
-                  aria-label={`${item.quantity_missing} of ${item.part_num} ${item.color_name} missing from ${aggregate.name}. Confirm one present.`}
-                  className="absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 font-mono text-[10px] font-bold text-white transition hover:bg-green-600 active:scale-90 disabled:opacity-40"
-                >
-                  {item.quantity_missing}
-                </button>
+                {item.quantity_broken > 0 && (
+                  <span
+                    title={`${item.quantity_broken} broken ${item.quantity_broken === 1 ? "piece" : "pieces"} to replace`}
+                    className="pointer-events-none absolute top-0.5 left-0.5 flex h-5 min-w-5 items-center justify-center gap-0.5 rounded-full bg-violet-700 px-1 font-mono text-[10px] font-bold text-white"
+                  >
+                    <BrokenBrickIcon className="h-3.5 w-3.5" />
+                    {item.quantity_broken}
+                  </span>
+                )}
+                {item.quantity_missing > 0 && (
+                  <span
+                    title={`${item.quantity_missing} missing`}
+                    className="pointer-events-none absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 font-mono text-[10px] font-bold text-white"
+                  >
+                    {item.quantity_missing}
+                  </span>
+                )}
+
+                <div className="mt-auto flex justify-end gap-1">
+                  {item.quantity_missing > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => onResolve(item, "missing")}
+                      disabled={pendingKey === key}
+                      title="Confirm one missing piece found"
+                      aria-label={`Confirm one missing ${item.part_num} ${item.color_name} found in ${aggregate.name}`}
+                      className="ui-control h-5 border-green-300 px-1.5 text-[9px] font-bold text-green-700 hover:border-green-500 hover:bg-green-50 disabled:opacity-40"
+                    >
+                      &#10003;
+                    </button>
+                  )}
+                  {item.quantity_broken > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => onResolve(item, "broken")}
+                      disabled={pendingKey === key}
+                      title="Confirm one broken piece replaced"
+                      aria-label={`Confirm one broken ${item.part_num} ${item.color_name} replaced in ${aggregate.name}`}
+                      className="ui-control h-5 border-violet-300 px-1.5 text-[9px] font-bold text-violet-700 hover:border-violet-500 hover:bg-violet-50 disabled:opacity-40"
+                    >
+                      &#10003;
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}

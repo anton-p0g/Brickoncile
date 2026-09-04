@@ -16,6 +16,7 @@ from app.api.dependencies import (
     get_mark_minifig_instance_found_use_case,
     get_resync_use_case,
     get_set_parts_found_use_case,
+    get_update_part_condition_use_case,
     get_update_sorting_state_use_case,
 )
 from app.api.schemas import (
@@ -34,6 +35,7 @@ from app.api.schemas import (
     MarkMinifigPartResponse,
     MinifigInstanceDetail,
     MinifigInstanceSummary,
+    PartConditionRequest,
     PartOut,
     SetPartsFoundRequest,
     SetPartsFoundResponse,
@@ -56,6 +58,7 @@ from app.application.use_cases.mark_minifig_instance_found import (
 )
 from app.application.use_cases.resync_from_source import ResyncFromSourceUseCase
 from app.application.use_cases.set_parts_found import SetPartsFoundUseCase
+from app.application.use_cases.update_part_condition import UpdatePartConditionUseCase
 from app.application.use_cases.update_sorting_state import UpdateSortingStateUseCase
 from app.domain.entities import MinifigInstance
 from app.domain.errors import (
@@ -284,6 +287,32 @@ def adjust_instance_part_found(
 ) -> MarkMinifigPartResponse:
     try:
         part, instance = adjust_found.execute(instance_id, part_num, color_id, body.found_delta)
+    except EntityNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return MarkMinifigPartResponse(
+        part=PartOut.from_domain(part), instance_summary=EntityTotals.from_inventory(instance)
+    )
+
+
+@router.post("/instances/{instance_id}/parts/{part_num}/colors/{color_id}/condition")
+def update_instance_part_condition(
+    instance_id: str,
+    part_num: str,
+    color_id: int,
+    body: PartConditionRequest,
+    update_condition: Annotated[
+        UpdatePartConditionUseCase, Depends(get_update_part_condition_use_case)
+    ],
+) -> MarkMinifigPartResponse:
+    try:
+        part, instance = update_condition.execute(
+            "minifig_instance",
+            instance_id,
+            part_num,
+            color_id,
+            body.quantity_found,
+            body.quantity_broken,
+        )
     except EntityNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return MarkMinifigPartResponse(

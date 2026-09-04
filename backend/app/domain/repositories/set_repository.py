@@ -34,6 +34,17 @@ class SetRepository(Protocol):
         """Set the confirmed-present count on the tracked (non-spare) part. See `get_part`."""
         ...
 
+    def update_part_condition(
+        self,
+        set_num: str,
+        part_num: str,
+        color_id: int,
+        quantity_found: int,
+        quantity_broken: int,
+    ) -> Part:
+        """Set found and broken together, keeping broken within the found count."""
+        ...
+
     def update_parts_found(self, set_num: str, updates: list[PartFoundUpdate]) -> list[Part]:
         """Apply many found counts in one transaction, for confirming a whole screen of parts at
         once. Unknown parts are skipped rather than failing the batch, so a stale client cannot

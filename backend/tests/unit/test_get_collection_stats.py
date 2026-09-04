@@ -40,13 +40,20 @@ def make_set(set_num, parts, sorting_finished_at=None, theme_id=None, year=2015,
     )
 
 
-def make_record(minutes, quantity_before=0, quantity_after=1, part_num="3001", entity_id="75192-1"):
+def make_record(
+    minutes,
+    quantity_before=0,
+    quantity_after=1,
+    part_num="3001",
+    entity_id="75192-1",
+    action="marked_found",
+):
     return MissingPartRecord(
         entity_type="set",
         entity_id=entity_id,
         part_num=part_num,
         color_id=0,
-        action="marked_found",
+        action=action,
         quantity_before=quantity_before,
         quantity_after=quantity_after,
         timestamp=START + timedelta(minutes=minutes),
@@ -177,6 +184,19 @@ def test_burn_up_is_empty_without_history():
     stats = build(sets=[make_set("a-1", [make_part("3001")])]).execute()
 
     assert stats.burn_up.points == []
+
+
+def test_broken_condition_history_does_not_inflate_found_progress():
+    records = [
+        make_record(0, 0, 1),
+        make_record(1, 0, 1, action="marked_broken"),
+    ]
+
+    stats = build(records=records).execute()
+
+    assert stats.burn_up.points[-1].quantity_found == 1
+    assert sum(bucket.pieces for bucket in stats.activity_by_hour) == 1
+    assert stats.sessions.pieces_per_session == 1
 
 
 def test_sessions_split_on_a_long_pause():

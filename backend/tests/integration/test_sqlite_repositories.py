@@ -61,6 +61,17 @@ def test_set_repository_round_trip(session):
     assert repo.get_part("75192-1", "3001", 0).quantity_found == 2
     assert len(repo.list_all()) == 1
 
+    conditioned_part = repo.update_part_condition(
+        "75192-1", "3001", 0, quantity_found=2, quantity_broken=1
+    )
+    assert conditioned_part.quantity_broken == 1
+    assert repo.get_part("75192-1", "3001", 0).quantity_broken == 1
+
+    # Broken is a subset of found, so walking found back also clears an impossible condition count.
+    repo.update_part_found("75192-1", "3001", 0, quantity_found=0)
+    assert repo.get_part("75192-1", "3001", 0).quantity_broken == 0
+    repo.update_part_found("75192-1", "3001", 0, quantity_found=2)
+
     # Two of four confirmed present, and sorting is unfinished, so nothing counts as missing yet.
     assert repo.get("75192-1").status == "sorting"
     assert repo.get("75192-1").total_missing == 0

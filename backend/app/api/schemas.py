@@ -60,6 +60,8 @@ class PartOut(BaseModel):
     image_url: str | None
     quantity_required: int
     quantity_found: int
+    """How many found pieces are broken. This is a subset of quantity_found."""
+    quantity_broken: int
     """Pieces not confirmed present. Whether the UI calls these "missing" or "not checked yet"
     depends on the owning inventory's status."""
     quantity_unaccounted: int
@@ -77,6 +79,7 @@ class PartOut(BaseModel):
             image_url=to_image_url(part.image_path),
             quantity_required=part.quantity_required,
             quantity_found=part.quantity_found,
+            quantity_broken=part.quantity_broken,
             quantity_unaccounted=part.quantity_unaccounted,
             is_fully_found=part.is_fully_found,
             is_spare=part.is_spare,
@@ -173,6 +176,13 @@ class FoundDeltaRequest(BaseModel):
     walk that back. Clamped server-side to [0, quantity_required]."""
 
     found_delta: int
+
+
+class PartConditionRequest(BaseModel):
+    """Absolute counts from the condition editor. Broken is clamped within found server-side."""
+
+    quantity_found: int
+    quantity_broken: int
 
 
 class MarkSetPartResponse(BaseModel):
@@ -536,7 +546,10 @@ class ContributorOut(BaseModel):
     name: str
     reference: str
     image_url: str | None
-    quantity: int
+    quantity_found: int
+    quantity_missing: int
+    quantity_broken: int
+    quantity_needed: int
 
 
 class PartAggregateOut(BaseModel):
@@ -546,6 +559,8 @@ class PartAggregateOut(BaseModel):
     color_name: str
     image_url: str | None
     total_missing: int
+    total_broken: int
+    total_needed: int
     contributors: list[ContributorOut]
 
     @classmethod
@@ -557,6 +572,8 @@ class PartAggregateOut(BaseModel):
             color_name=aggregate.color_name,
             image_url=to_image_url(aggregate.image_path),
             total_missing=aggregate.total_missing,
+            total_broken=aggregate.total_broken,
+            total_needed=aggregate.total_needed,
             contributors=[
                 ContributorOut(
                     source_type=c.source_type,
@@ -565,7 +582,10 @@ class PartAggregateOut(BaseModel):
                     name=c.name,
                     reference=c.reference,
                     image_url=to_image_url(c.image_path),
-                    quantity=c.quantity,
+                    quantity_found=c.quantity_found,
+                    quantity_missing=c.quantity_missing,
+                    quantity_broken=c.quantity_broken,
+                    quantity_needed=c.quantity_needed,
                 )
                 for c in aggregate.contributors
             ],
@@ -579,6 +599,9 @@ class SourceItemOut(BaseModel):
     color_name: str
     image_url: str | None
     quantity_missing: int
+    quantity_found: int
+    quantity_broken: int
+    quantity_needed: int
 
 
 class SourceAggregateOut(BaseModel):
@@ -590,6 +613,8 @@ class SourceAggregateOut(BaseModel):
     image_url: str | None
     items: list[SourceItemOut]
     total_missing: int
+    total_broken: int
+    total_needed: int
 
     @classmethod
     def from_use_case(cls, aggregate: "SourceAggregate") -> "SourceAggregateOut":
@@ -608,10 +633,15 @@ class SourceAggregateOut(BaseModel):
                     color_name=i.color_name,
                     image_url=to_image_url(i.image_path),
                     quantity_missing=i.quantity_missing,
+                    quantity_found=i.quantity_found,
+                    quantity_broken=i.quantity_broken,
+                    quantity_needed=i.quantity_needed,
                 )
                 for i in aggregate.items
             ],
             total_missing=aggregate.total_missing,
+            total_broken=aggregate.total_broken,
+            total_needed=aggregate.total_needed,
         )
 
 

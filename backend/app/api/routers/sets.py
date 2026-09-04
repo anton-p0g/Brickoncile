@@ -13,6 +13,7 @@ from app.api.dependencies import (
     get_fetch_set_use_case,
     get_resync_use_case,
     get_set_parts_found_use_case,
+    get_update_part_condition_use_case,
     get_update_sorting_state_use_case,
 )
 from app.api.schemas import (
@@ -26,6 +27,7 @@ from app.api.schemas import (
     HistoryEntryOut,
     MarkSetPartResponse,
     MinifigInstanceSummary,
+    PartConditionRequest,
     PartOut,
     SetDetail,
     SetPartsFoundRequest,
@@ -38,6 +40,7 @@ from app.application.use_cases.delete_set import DeleteSetUseCase
 from app.application.use_cases.fetch_set import FetchSetUseCase
 from app.application.use_cases.resync_from_source import ResyncFromSourceUseCase
 from app.application.use_cases.set_parts_found import SetPartsFoundUseCase
+from app.application.use_cases.update_part_condition import UpdatePartConditionUseCase
 from app.application.use_cases.update_sorting_state import UpdateSortingStateUseCase
 from app.domain.errors import (
     EntityNotFoundError,
@@ -163,6 +166,32 @@ def adjust_part_found(
     except EntityNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return MarkSetPartResponse(part=PartOut.from_domain(part), set_summary=EntityTotals.from_inventory(lego_set))
+
+
+@router.post("/{set_num}/parts/{part_num}/colors/{color_id}/condition")
+def update_part_condition(
+    set_num: str,
+    part_num: str,
+    color_id: int,
+    body: PartConditionRequest,
+    update_condition: Annotated[
+        UpdatePartConditionUseCase, Depends(get_update_part_condition_use_case)
+    ],
+) -> MarkSetPartResponse:
+    try:
+        part, lego_set = update_condition.execute(
+            "set",
+            set_num,
+            part_num,
+            color_id,
+            body.quantity_found,
+            body.quantity_broken,
+        )
+    except EntityNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return MarkSetPartResponse(
+        part=PartOut.from_domain(part), set_summary=EntityTotals.from_inventory(lego_set)
+    )
 
 
 @router.post("/{set_num}/parts/found")

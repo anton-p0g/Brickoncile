@@ -69,6 +69,7 @@ def test_drops_the_legacy_column_so_the_schema_matches_a_fresh_database(tmp_path
 
     columns = {row[1] for row in query(engine, "PRAGMA table_info(set_parts)")}
     assert "quantity_found" in columns
+    assert "quantity_broken" in columns
     assert "quantity_missing" not in columns
 
 
@@ -194,4 +195,32 @@ def test_runs_clean_on_a_brand_new_database(tmp_path):
 
     columns = {row[1] for row in query(engine, "PRAGMA table_info(set_parts)")}
     assert "quantity_found" in columns
+    assert "quantity_broken" in columns
     assert "quantity_missing" not in columns
+
+
+def test_adds_zero_broken_count_to_an_existing_found_inventory(tmp_path):
+    """The direct upgrade path for current users preserves every existing found count."""
+    engine = create_engine(f"sqlite:///{tmp_path / 'current.db'}")
+    from app.infrastructure.db import models  # noqa: F401
+
+    SQLModel.metadata.create_all(engine)
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE set_parts DROP COLUMN quantity_broken"))
+        connection.execute(
+            text(
+                """
+                INSERT INTO set_parts
+                    (set_num, part_num, color_id, color_name, part_name, quantity_required,
+                     quantity_found, is_spare, created_at, updated_at)
+                VALUES
+                    ('75192-1', '3001', 0, 'Black', 'Brick 2x4', 4, 3, 0,
+                     '2024-01-01', '2024-01-01')
+                """
+            )
+        )
+
+    run_migrations(engine)
+
+    row = query(engine, "SELECT quantity_found, quantity_broken FROM set_parts")[0]
+    assert row == (3, 0)

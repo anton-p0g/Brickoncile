@@ -103,6 +103,23 @@ export function adjustSetPartFound(setNum: string, partNum: string, colorId: num
   );
 }
 
+/** Save the two counts from the part condition editor as one consistent state. */
+export function updateSetPartCondition(
+  setNum: string,
+  partNum: string,
+  colorId: number,
+  quantityFound: number,
+  quantityBroken: number,
+) {
+  return apiFetch<MarkSetPartResponse>(
+    `/sets/${encodeURIComponent(setNum)}/parts/${encodeURIComponent(partNum)}/colors/${colorId}/condition`,
+    {
+      method: "POST",
+      body: JSON.stringify({ quantity_found: quantityFound, quantity_broken: quantityBroken }),
+    },
+  );
+}
+
 /** Write many parts' found counts in one request, for confirming a whole filtered grid at once. */
 export function setSetPartsFound(setNum: string, parts: PartFoundTarget[]) {
   return apiFetch<SetPartsFoundResponse>(`/sets/${encodeURIComponent(setNum)}/parts/found`, {
@@ -171,6 +188,22 @@ export function adjustMinifigPartFound(
   return apiFetch<MarkMinifigPartResponse>(
     `/minifigs/instances/${encodeURIComponent(instanceId)}/parts/${encodeURIComponent(partNum)}/colors/${colorId}/found`,
     { method: "POST", body: JSON.stringify({ found_delta: foundDelta }) },
+  );
+}
+
+export function updateMinifigPartCondition(
+  instanceId: string,
+  partNum: string,
+  colorId: number,
+  quantityFound: number,
+  quantityBroken: number,
+) {
+  return apiFetch<MarkMinifigPartResponse>(
+    `/minifigs/instances/${encodeURIComponent(instanceId)}/parts/${encodeURIComponent(partNum)}/colors/${colorId}/condition`,
+    {
+      method: "POST",
+      body: JSON.stringify({ quantity_found: quantityFound, quantity_broken: quantityBroken }),
+    },
   );
 }
 

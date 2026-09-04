@@ -42,7 +42,7 @@ export function MinifigInstanceCard({ instance, showSourceSet = false, onError }
   const checked = toggle.isPending ? toggle.variables.found : instance.is_complete;
 
   return (
-    <div className="group relative w-40 flex-shrink-0 rounded transition-[box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:shadow-sm">
+    <div className="group relative w-40 flex-shrink-0 rounded transition-shadow duration-150 hover:shadow-sm">
       <Link
         to={`/minifigs/${encodeURIComponent(instance.instance_id)}`}
         className={`flex h-full flex-col gap-1.5 rounded border bg-white p-2 transition-colors duration-150 group-hover:border-blue-400 ${borderClass}`}

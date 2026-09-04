@@ -6,6 +6,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import type { PartOut } from "../api/types";
+import { BrokenBrickIcon } from "./BrokenBrickIcon";
 
 const LONG_PRESS_MS = 250;
 /** A press that wanders this far is a scroll, not a long-press. */
@@ -105,6 +106,7 @@ export function PartCard({
   const [loaded, setLoaded] = useState(false);
   const {
     quantity_found: found,
+    quantity_broken: broken,
     quantity_required: required,
     quantity_unaccounted: unaccounted,
   } = part;
@@ -117,16 +119,13 @@ export function PartCard({
     mode === "find" ? (fullyFound ? -required : required - found) : -1;
   const tapDisabled = mode === "missing" && found <= 0;
 
-  const longPress = useLongPress(
-    onRequestStepper,
-    mode === "find" && required > 1,
-  );
+  const longPress = useLongPress(onRequestStepper, true);
 
   const cardLabel =
     mode === "find"
-      ? `${part.part_num} ${part.color_name}, ${found} of ${required} found.` +
+      ? `${part.part_num} ${part.color_name}, ${found} of ${required} found, ${broken} broken.` +
         (fullyFound ? " Clear this line." : ` Confirm all ${required} present.`)
-      : `${part.part_num} ${part.color_name}, ${unaccounted} of ${required} unaccounted for.` +
+      : `${part.part_num} ${part.color_name}, ${unaccounted} of ${required} unaccounted for, ${broken} broken.` +
         (tapDisabled
           ? " Nothing left to mark missing."
           : " Mark one more missing.");
@@ -134,13 +133,11 @@ export function PartCard({
   const cardHint =
     mode === "find"
       ? fullyFound
-        ? "Tap to clear this line"
-        : required > 1
-          ? `Tap to confirm all ${required} present, long-press for a partial count`
-          : "Tap to confirm present"
+        ? "Tap to clear this line, long-press to edit condition"
+        : `Tap to confirm all ${required} found, long-press to edit found and broken counts`
       : tapDisabled
-        ? "Nothing left to mark missing"
-        : "Tap to mark one more missing";
+        ? "Long-press to edit found and broken counts"
+        : "Tap to mark one more missing, long-press to edit condition";
 
   const borderClass = fullyFound
     ? "border-green-300 bg-green-50 hover:border-green-500"
@@ -152,7 +149,7 @@ export function PartCard({
 
   return (
     <div
-      className={`relative flex flex-col gap-1 rounded border p-1.5 text-left transition-[border-color,box-shadow,transform] duration-150 hover:z-20 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-md ${borderClass}`}
+      className={`relative flex flex-col gap-1 rounded border p-1.5 text-left transition-[border-color,box-shadow] duration-150 hover:z-20 hover:shadow-md ${borderClass}`}
     >
       {/* The whole card is the tap target. It overlays the content, which ignores pointers, and
           sits below the corner badge so the badge's own tap wins. */}
@@ -160,13 +157,14 @@ export function PartCard({
         type="button"
         aria-label={cardLabel}
         title={cardHint}
-        disabled={tapDisabled}
+        aria-disabled={tapDisabled}
         onClick={() => {
           if (longPress.consumedClick()) return;
+          if (tapDisabled) return;
           onMark(tapDelta);
         }}
         {...longPress.handlers}
-        className="absolute inset-0 z-10 cursor-pointer touch-manipulation rounded focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:outline-none disabled:cursor-default"
+        className={`absolute inset-0 z-10 touch-manipulation rounded focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:outline-none ${tapDisabled ? "cursor-default" : "cursor-pointer"}`}
       />
 
       <div className="pointer-events-none flex flex-col gap-1 select-none">
@@ -201,9 +199,25 @@ export function PartCard({
             }
           >
             {found} of {required} found
+            {broken > 0 && (
+              <span className="text-violet-700"> &middot; {broken} broken</span>
+            )}
           </div>
         </div>
       </div>
+
+      {broken > 0 && (
+        <button
+          type="button"
+          aria-label={`${broken} broken ${broken === 1 ? "piece" : "pieces"}. Edit condition.`}
+          title="Edit found and broken counts"
+          onClick={onRequestStepper}
+          className="absolute top-1 left-1 z-20 flex h-6 min-w-6 items-center justify-center gap-0.5 rounded-full bg-violet-700 px-1.5 font-mono text-[11px] font-bold text-white transition active:scale-90 focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:outline-none"
+        >
+          <BrokenBrickIcon />
+          {broken}
+        </button>
+      )}
 
       {/* Found lines get a check; in missing mode the outstanding count is a tappable badge that
           gives pieces back one at a time. */}

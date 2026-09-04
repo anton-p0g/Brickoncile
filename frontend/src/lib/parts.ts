@@ -29,6 +29,29 @@ export function applyFoundDelta(parts: PartOut[], partNum: string, colorId: numb
     return {
       ...part,
       quantity_found: found,
+      quantity_broken: Math.min(part.quantity_broken, found),
+      quantity_unaccounted: part.quantity_required - found,
+      is_fully_found: found >= part.quantity_required,
+    };
+  });
+}
+
+/** Apply the absolute counts used by the condition editor. Broken is a subset of found. */
+export function applyPartCondition(
+  parts: PartOut[],
+  partNum: string,
+  colorId: number,
+  quantityFound: number,
+  quantityBroken: number,
+): PartOut[] {
+  return parts.map((part) => {
+    if (!isTrackedPart(part, partNum, colorId)) return part;
+    const found = Math.max(0, Math.min(part.quantity_required, Math.round(quantityFound)));
+    const broken = Math.max(0, Math.min(found, Math.round(quantityBroken)));
+    return {
+      ...part,
+      quantity_found: found,
+      quantity_broken: broken,
       quantity_unaccounted: part.quantity_required - found,
       is_fully_found: found >= part.quantity_required,
     };

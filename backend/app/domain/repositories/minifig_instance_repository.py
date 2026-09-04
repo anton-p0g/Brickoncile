@@ -32,6 +32,17 @@ class MinifigInstanceRepository(Protocol):
 
     def update_part_found(self, instance_id: str, part_num: str, color_id: int, quantity_found: int) -> Part: ...
 
+    def update_part_condition(
+        self,
+        instance_id: str,
+        part_num: str,
+        color_id: int,
+        quantity_found: int,
+        quantity_broken: int,
+    ) -> Part:
+        """Set found and broken together, keeping broken within the found count."""
+        ...
+
     def update_parts_found(self, instance_id: str, updates: list[PartFoundUpdate]) -> list[Part]:
         """Apply many found counts in one transaction. See SetRepository.update_parts_found."""
         ...

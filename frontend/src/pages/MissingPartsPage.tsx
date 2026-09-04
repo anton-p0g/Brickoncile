@@ -32,7 +32,7 @@ import { markKey } from "../lib/sources";
 type MissingSort = "most-missing" | "part-num" | "color" | "name";
 
 const MISSING_SORT_LABELS: Record<MissingSort, string> = {
-  "most-missing": "Most missing first",
+  "most-missing": "Most needed first",
   "part-num": "Part number",
   color: "Colour",
   name: "Name",
@@ -149,7 +149,7 @@ export function MissingPartsPage() {
     return [...matching].sort((a, b) => {
       switch (sort) {
         case "most-missing":
-          return b.total_missing - a.total_missing;
+          return b.total_needed - a.total_needed;
         case "part-num":
           return a.part_num.localeCompare(b.part_num, undefined, {
             numeric: true,
@@ -189,7 +189,7 @@ export function MissingPartsPage() {
         const sorted = [...items].sort((a, b) => {
           switch (sort) {
             case "most-missing":
-              return b.quantity_missing - a.quantity_missing;
+              return b.quantity_needed - a.quantity_needed;
             case "part-num":
               return a.part_num.localeCompare(b.part_num, undefined, {
                 numeric: true,
@@ -209,7 +209,7 @@ export function MissingPartsPage() {
       .sort((a, b) =>
         sort === "name" || sort === "color"
           ? a.name.localeCompare(b.name)
-          : b.total_missing - a.total_missing,
+          : b.total_needed - a.total_needed,
       );
   }, [data, groupBy, search, sort, colorFilter]);
 
@@ -223,14 +223,14 @@ export function MissingPartsPage() {
         ),
       );
       return {
-        pieces: aggregates.reduce((sum, a) => sum + a.total_missing, 0),
+        pieces: aggregates.reduce((sum, a) => sum + a.total_needed, 0),
         lines: aggregates.length,
         sources: sources.size,
       };
     }
     const aggregates = data as SourceAggregateOut[];
     return {
-      pieces: aggregates.reduce((sum, a) => sum + a.total_missing, 0),
+      pieces: aggregates.reduce((sum, a) => sum + a.total_needed, 0),
       lines: aggregates.reduce((sum, a) => sum + a.items.length, 0),
       sources: aggregates.length,
     };
@@ -242,8 +242,11 @@ export function MissingPartsPage() {
       return byPart
         .map(
           (a) =>
-            `${a.part_num} ${a.color_name} ${a.part_name} — needs ${a.total_missing} (${a.contributors
-              .map((c) => `${c.label} x${c.quantity}`)
+            `${a.part_num} ${a.color_name} ${a.part_name} — needs ${a.total_needed} (${a.total_missing} missing, ${a.total_broken} broken; ${a.contributors
+              .map(
+                (c) =>
+                  `${c.label}: ${c.quantity_missing} missing, ${c.quantity_broken} broken`,
+              )
               .join(", ")})`,
         )
         .join("\n");
@@ -251,11 +254,11 @@ export function MissingPartsPage() {
     return bySource
       .map(
         (s) =>
-          `${s.label} — ${s.total_missing} missing\n` +
+          `${s.label} — ${s.total_needed} needed (${s.total_missing} missing, ${s.total_broken} broken)\n` +
           s.items
             .map(
               (i) =>
-                `  ${i.part_num} ${i.color_name} ${i.part_name} x${i.quantity_missing}`,
+                `  ${i.part_num} ${i.color_name} ${i.part_name} — ${i.quantity_missing} missing, ${i.quantity_broken} broken`,
             )
             .join("\n"),
       )
@@ -270,25 +273,50 @@ export function MissingPartsPage() {
     );
   }
 
-  function markContributorFound(
+  function resolveContributor(
     aggregate: PartAggregateOut,
     contributor: ContributorOut,
+    condition: "missing" | "broken",
   ) {
-    markFound.mutate({
-      source: contributor,
-      partNum: aggregate.part_num,
-      colorId: aggregate.color_id,
-      foundDelta: 1,
-    });
+    if (condition === "missing") {
+      markFound.mutate({
+        source: contributor,
+        partNum: aggregate.part_num,
+        colorId: aggregate.color_id,
+        foundDelta: 1,
+      });
+    } else {
+      markFound.mutate({
+        source: contributor,
+        partNum: aggregate.part_num,
+        colorId: aggregate.color_id,
+        quantityFound: contributor.quantity_found,
+        quantityBroken: contributor.quantity_broken - 1,
+      });
+    }
   }
 
-  function markItemFound(aggregate: SourceAggregateOut, item: SourceItemOut) {
-    markFound.mutate({
-      source: aggregate,
-      partNum: item.part_num,
-      colorId: item.color_id,
-      foundDelta: 1,
-    });
+  function resolveItem(
+    aggregate: SourceAggregateOut,
+    item: SourceItemOut,
+    condition: "missing" | "broken",
+  ) {
+    if (condition === "missing") {
+      markFound.mutate({
+        source: aggregate,
+        partNum: item.part_num,
+        colorId: item.color_id,
+        foundDelta: 1,
+      });
+    } else {
+      markFound.mutate({
+        source: aggregate,
+        partNum: item.part_num,
+        colorId: item.color_id,
+        quantityFound: item.quantity_found,
+        quantityBroken: item.quantity_broken - 1,
+      });
+    }
   }
 
   const selectedColorName =
@@ -304,7 +332,7 @@ export function MissingPartsPage() {
       <StatsBar
         isLoading={isLoading}
         stats={[
-          { label: "pieces missing", value: totals.pieces },
+          { label: "pieces needed", value: totals.pieces },
           { label: "kinds of piece", value: totals.lines },
           { label: "sets affected", value: totals.sources },
         ]}
@@ -323,8 +351,8 @@ export function MissingPartsPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Filter missing parts"
-          aria-label="Filter missing parts by part number, name, colour or set"
+          placeholder="Filter needed parts"
+          aria-label="Filter needed parts by part number, name, colour or set"
           className="ui-field w-44 px-2 py-0.5 text-xs"
         />
         <ColorFilterSelect
@@ -348,13 +376,13 @@ export function MissingPartsPage() {
           <p className="text-sm text-gray-500">Loading...</p>
         ) : isEmpty ? (
           <p className="text-sm text-gray-500">
-            Nothing missing.{" "}
+            Nothing needed.{" "}
             {stillSorting === 0 &&
-              "Every sorted set and minifigure is accounted for."}
+              "Every sorted set and minifigure is accounted for and undamaged."}
           </p>
         ) : filteredEverythingOut ? (
           <p className="text-sm text-gray-500">
-            Nothing missing matches{" "}
+            Nothing needed matches{" "}
             {search && (
               <span className="font-semibold">&quot;{search}&quot;</span>
             )}
@@ -378,8 +406,8 @@ export function MissingPartsPage() {
                     alt: aggregate.part_name,
                   })
                 }
-                onMarkFound={(contributor) =>
-                  markContributorFound(aggregate, contributor)
+                onResolve={(contributor, condition) =>
+                  resolveContributor(aggregate, contributor, condition)
                 }
               />
             ))}
@@ -403,7 +431,9 @@ export function MissingPartsPage() {
                     aggregate.image_url &&
                     setZoom({ src: aggregate.image_url, alt: aggregate.name })
                   }
-                  onMarkFound={(item) => markItemFound(aggregate, item)}
+                  onResolve={(item, condition) =>
+                    resolveItem(aggregate, item, condition)
+                  }
                 />
               );
             })}

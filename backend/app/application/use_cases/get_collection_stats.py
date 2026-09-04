@@ -202,6 +202,13 @@ def _tracked(parts: list[Part]) -> list[Part]:
     return [p for p in parts if not p.is_spare]
 
 
+def _found_delta(record: MissingPartRecord) -> int:
+    """Only found-count history moves collection progress; condition changes do not."""
+    if record.action in ("marked_broken", "unmarked_broken"):
+        return 0
+    return record.quantity_after - record.quantity_before
+
+
 class GetCollectionStatsUseCase:
     """Every number behind the dashboard, computed in one pass over the collection.
 
@@ -369,7 +376,15 @@ class GetCollectionStatsUseCase:
         return common[:COMMON_PARTS_LIMIT]
 
     def _top_missing(self) -> list[MissingPartStat]:
-        aggregates = self.missing_summary.execute(group_by="part")
+        aggregates = sorted(
+            (
+                aggregate
+                for aggregate in self.missing_summary.execute(group_by="part")
+                if aggregate.total_missing > 0
+            ),
+            key=lambda aggregate: aggregate.total_missing,
+            reverse=True,
+        )
         return [
             MissingPartStat(
                 part_num=a.part_num,
@@ -384,10 +399,11 @@ class GetCollectionStatsUseCase:
         ]
 
     def _burn_up(self, history: list[MissingPartRecord]) -> BurnUp:
-        if not history:
+        found_history = [record for record in history if _found_delta(record) != 0]
+        if not found_history:
             return BurnUp(granularity="hour", points=[])
 
-        ordered = sorted(history, key=lambda r: r.timestamp)
+        ordered = sorted(found_history, key=lambda r: r.timestamp)
         span = ordered[-1].timestamp - ordered[0].timestamp
         granularity: Literal["hour", "day"] = "hour" if span <= HOURLY_BURN_UP_MAX_SPAN else "day"
 
@@ -399,7 +415,7 @@ class GetCollectionStatsUseCase:
 
         totals: dict[datetime, int] = defaultdict(int)
         for record in ordered:
-            totals[bucket_of(record.timestamp)] += record.quantity_after - record.quantity_before
+            totals[bucket_of(record.timestamp)] += _found_delta(record)
 
         # Open on zero one bucket before the first find, so the curve visibly rises from nothing
         # rather than starting part-way up its own first step.
@@ -421,7 +437,7 @@ class GetCollectionStatsUseCase:
             # than about UTC.
             hour = record.timestamp.astimezone().hour
             events[hour] += 1
-            pieces[hour] += record.quantity_after - record.quantity_before
+            pieces[hour] += _found_delta(record)
         # All 24 hours, so the histogram keeps a stable x axis and the quiet ones read as quiet.
         return [HourBucket(hour=h, events=events[h], pieces=pieces[h]) for h in range(24)]
 
@@ -431,7 +447,7 @@ class GetCollectionStatsUseCase:
         for record in history:
             day = record.timestamp.astimezone().date()
             events[day] += 1
-            pieces[day] += record.quantity_after - record.quantity_before
+            pieces[day] += _found_delta(record)
         return [DayBucket(day=day, events=events[day], pieces=pieces[day]) for day in sorted(events)]
 
     def _sessions(self, history: list[MissingPartRecord]) -> SessionStats:
@@ -449,7 +465,7 @@ class GetCollectionStatsUseCase:
                 runs[-1].append(record)
 
         durations = [(run[-1].timestamp - run[0].timestamp).total_seconds() / 60 for run in runs]
-        pieces = sum(r.quantity_after - r.quantity_before for r in ordered)
+        pieces = sum(_found_delta(r) for r in ordered)
         total_minutes = sum(durations)
         return SessionStats(
             count=len(runs),

@@ -44,14 +44,50 @@ def _build_csv(result: list[PartAggregate] | list[SourceAggregate], group_by: Li
     writer = csv.writer(output)
 
     if group_by == "part":
-        writer.writerow(["part_num", "color_id", "part_name", "color_name", "total_missing", "contributors"])
+        writer.writerow(
+            [
+                "part_num",
+                "color_id",
+                "part_name",
+                "color_name",
+                "total_needed",
+                "total_missing",
+                "total_broken",
+                "contributors",
+            ]
+        )
         for aggregate in result:
-            contributors = "; ".join(f"{c.label} x{c.quantity}" for c in aggregate.contributors)
+            contributors = "; ".join(
+                f"{c.label} missing {c.quantity_missing}, broken {c.quantity_broken}"
+                for c in aggregate.contributors
+            )
             writer.writerow(
-                [aggregate.part_num, aggregate.color_id, aggregate.part_name, aggregate.color_name, aggregate.total_missing, contributors]
+                [
+                    aggregate.part_num,
+                    aggregate.color_id,
+                    aggregate.part_name,
+                    aggregate.color_name,
+                    aggregate.total_needed,
+                    aggregate.total_missing,
+                    aggregate.total_broken,
+                    contributors,
+                ]
             )
     else:
-        writer.writerow(["source_type", "source_id", "label", "part_num", "color_id", "part_name", "color_name", "quantity_missing"])
+        writer.writerow(
+            [
+                "source_type",
+                "source_id",
+                "label",
+                "part_num",
+                "color_id",
+                "part_name",
+                "color_name",
+                "quantity_needed",
+                "quantity_missing",
+                "quantity_broken",
+            ]
+        )
         for aggregate in result:
             for item in aggregate.items:
                 writer.writerow(
@@ -63,7 +99,9 @@ def _build_csv(result: list[PartAggregate] | list[SourceAggregate], group_by: Li
                         item.color_id,
                         item.part_name,
                         item.color_name,
+                        item.quantity_needed,
                         item.quantity_missing,
+                        item.quantity_broken,
                     ]
                 )
 

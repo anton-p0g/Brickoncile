@@ -44,7 +44,18 @@ function actionLabel(entry: HistoryEntryOut): string {
   const delta = entry.quantity_after - entry.quantity_before;
   const magnitude = Math.abs(delta);
   const pieces = magnitude === 1 ? "piece" : "pieces";
+  if (entry.action === "marked_broken") return `marked ${magnitude} ${pieces} broken`;
+  if (entry.action === "unmarked_broken") return `unmarked ${magnitude} broken ${pieces}`;
   return delta > 0 ? `found ${magnitude} ${pieces}` : `unmarked ${magnitude} ${pieces}`;
+}
+
+function actionTone(entry: HistoryEntryOut): string {
+  if (entry.action === "marked_broken" || entry.action === "unmarked_broken") {
+    return "text-violet-700";
+  }
+  return entry.quantity_after > entry.quantity_before
+    ? "text-green-600"
+    : "text-red-600";
 }
 
 function PartGroupRow({ group }: { group: PartGroup }) {
@@ -70,10 +81,18 @@ function PartGroupRow({ group }: { group: PartGroup }) {
           {part?.part_name && <span className="text-gray-400"> {part.part_name}</span>}
         </span>
         {part?.is_fully_found ? (
-          <span className="flex-shrink-0 font-mono text-[11px] font-semibold text-green-600">all found</span>
+          <span className="flex-shrink-0 font-mono text-[11px] font-semibold text-green-600">
+            all found
+            {part.quantity_broken > 0 && (
+              <span className="text-violet-700"> &middot; {part.quantity_broken} broken</span>
+            )}
+          </span>
         ) : (
           <span className="flex-shrink-0 font-mono text-[11px] font-bold text-amber-700">
             {part ? `${part.quantity_found} of ${part.quantity_required}` : "unknown part"}
+            {part && part.quantity_broken > 0 && (
+              <span className="text-violet-700"> &middot; {part.quantity_broken} broken</span>
+            )}
           </span>
         )}
         <span className="flex-shrink-0 font-mono text-[11px] text-gray-400">
@@ -94,11 +113,14 @@ function PartGroupRow({ group }: { group: PartGroup }) {
               key={`${entry.timestamp}-${index}`}
               className="flex flex-wrap items-baseline gap-x-2 py-0.5 font-mono text-[11px]"
             >
-              <span className={entry.quantity_after > entry.quantity_before ? "text-red-600" : "text-green-600"}>
+              <span className={actionTone(entry)}>
                 {actionLabel(entry)}
               </span>
               <span className="text-gray-400">
-                {entry.quantity_before} &rarr; {entry.quantity_after} found
+                {entry.quantity_before} &rarr; {entry.quantity_after}{" "}
+                {entry.action === "marked_broken" || entry.action === "unmarked_broken"
+                  ? "broken"
+                  : "found"}
               </span>
               <span title={formatAbsoluteTime(entry.timestamp)} className="text-gray-400">
                 {formatRelativeTime(entry.timestamp)}
@@ -171,7 +193,7 @@ export function HistoryLog({ entries, parts, isLoading, isOpen, onToggle }: Hist
             <p className="px-4 py-3 text-sm text-gray-500">Loading history...</p>
           ) : groups.length === 0 ? (
             <p className="px-4 py-3 text-sm text-gray-400">
-              Nothing logged yet. Marking a piece missing or found records an entry here.
+              Nothing logged yet. Marking a piece missing, found, or broken records an entry here.
             </p>
           ) : (
             <ul>
