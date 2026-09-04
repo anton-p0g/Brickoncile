@@ -39,3 +39,7 @@ class InvalidCollectionNameError(Exception):
 
 class CollectionNameConflictError(Exception):
     """Raised when a collection display name is already in use, ignoring case."""
+
+
+class LastCollectionDeletionError(Exception):
+    """Raised when deleting a collection would leave the app with no collection to select."""

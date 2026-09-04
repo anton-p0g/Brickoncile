@@ -6,6 +6,9 @@ export interface CollectionContextValue {
   activeCollection: CollectionOut;
   selectCollection: (collectionId: string) => void;
   addCollection: (name: string) => Promise<CollectionOut>;
+  renameCollection: (collectionId: string, name: string) => Promise<CollectionOut>;
+  duplicateCollection: (collectionId: string, name: string) => Promise<CollectionOut>;
+  removeCollection: (collectionId: string) => Promise<void>;
 }
 
 export const CollectionContext = createContext<CollectionContextValue | null>(null);

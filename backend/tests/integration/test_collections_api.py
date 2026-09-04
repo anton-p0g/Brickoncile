@@ -80,3 +80,51 @@ def test_unknown_collection_returns_404_instead_of_using_default(tmp_path):
         assert "not found" in response.json()["detail"]
     finally:
         manager.close()
+
+
+def test_renames_duplicates_and_deletes_a_collection(tmp_path):
+    client, manager = make_client(tmp_path)
+    try:
+        source = client.post("/api/collections", json={"name": "Projects"}).json()
+        client.post("/probe/10305-1", headers={"X-Collection-ID": source["id"]})
+
+        renamed = client.patch(
+            f"/api/collections/{source['id']}",
+            json={"name": "Castle projects"},
+        )
+        assert renamed.status_code == 200
+        assert renamed.json()["name"] == "Castle projects"
+
+        duplicated = client.post(
+            f"/api/collections/{source['id']}/duplicate",
+            json={"name": "Castle projects copy"},
+        )
+        assert duplicated.status_code == 201
+        duplicate_id = duplicated.json()["id"]
+        assert client.get("/probe", headers={"X-Collection-ID": duplicate_id}).json() == ["10305-1"]
+
+        deleted = client.delete(f"/api/collections/{source['id']}")
+        assert deleted.status_code == 204
+        assert client.get("/probe", headers={"X-Collection-ID": source["id"]}).status_code == 404
+    finally:
+        manager.close()
+
+
+def test_collection_management_reports_conflicts_and_protects_the_last_collection(tmp_path):
+    client, manager = make_client(tmp_path)
+    try:
+        default = client.get("/api/collections").json()[0]
+        other = client.post("/api/collections", json={"name": "Family"}).json()
+
+        conflict = client.patch(
+            f"/api/collections/{other['id']}",
+            json={"name": default["name"].upper()},
+        )
+        assert conflict.status_code == 409
+
+        assert client.delete(f"/api/collections/{other['id']}").status_code == 204
+        protected = client.delete(f"/api/collections/{default['id']}")
+        assert protected.status_code == 409
+        assert "only collection" in protected.json()["detail"].lower()
+    finally:
+        manager.close()

@@ -3,6 +3,7 @@
 import sqlite3
 import threading
 import unicodedata
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -15,6 +16,7 @@ from app.domain.errors import (
     CollectionNameConflictError,
     CollectionNotFoundError,
     InvalidCollectionNameError,
+    LastCollectionDeletionError,
 )
 from app.infrastructure.db import models  # noqa: F401 — registers collection tables
 from app.infrastructure.db.migrations import run_migrations
@@ -128,12 +130,7 @@ class CollectionManager:
     def create_collection(self, raw_name: str) -> CollectionRecord:
         name, normalised_name = _normalise_name(raw_name)
         with self._lock:
-            with self._connect_registry() as connection:
-                duplicate = connection.execute(
-                    "SELECT 1 FROM collections WHERE normalised_name = ?", (normalised_name,)
-                ).fetchone()
-            if duplicate is not None:
-                raise CollectionNameConflictError(f'A collection named "{name}" already exists')
+            self._ensure_name_available(name, normalised_name)
 
             collection_id = str(uuid4())
             final_path = self.collections_dir / f"{collection_id}.db"
@@ -170,6 +167,111 @@ class CollectionManager:
                 raise CollectionNameConflictError(f'A collection named "{name}" already exists') from exc
 
             return CollectionRecord(collection_id, name, final_path, created_at, False)
+
+    def rename_collection(self, collection_id: str, raw_name: str) -> CollectionRecord:
+        name, normalised_name = _normalise_name(raw_name)
+        with self._lock:
+            record = self.get_collection(collection_id)
+            self._ensure_name_available(name, normalised_name, excluding_id=collection_id)
+            try:
+                with self._connect_registry() as connection:
+                    connection.execute(
+                        "UPDATE collections SET name = ?, normalised_name = ? WHERE id = ?",
+                        (name, normalised_name, collection_id),
+                    )
+                    connection.commit()
+            except sqlite3.IntegrityError as exc:
+                raise CollectionNameConflictError(f'A collection named "{name}" already exists') from exc
+            return CollectionRecord(
+                record.id,
+                name,
+                record.database_path,
+                record.created_at,
+                record.is_default,
+            )
+
+    def duplicate_collection(self, collection_id: str, raw_name: str) -> CollectionRecord:
+        """Copy a collection through SQLite's backup API so WAL-backed writes are included."""
+        name, normalised_name = _normalise_name(raw_name)
+        with self._lock:
+            source = self.get_collection(collection_id)
+            self._ensure_name_available(name, normalised_name)
+            if not source.database_path.is_file():
+                raise CollectionNotFoundError(f'Database for collection "{source.name}" was not found')
+
+            duplicate_id = str(uuid4())
+            final_path = self.collections_dir / f"{duplicate_id}.db"
+            temporary_path = self.collections_dir / f".{duplicate_id}.tmp"
+            try:
+                # `sqlite3.Connection` does not close itself when used as a context manager.
+                # Explicit closing keeps the temporary file movable on Windows too.
+                with (
+                    closing(sqlite3.connect(source.database_path)) as source_connection,
+                    closing(sqlite3.connect(temporary_path)) as target_connection,
+                ):
+                    source_connection.backup(target_connection)
+                # A copied older database should receive the same migrations as a selected one.
+                engine = create_collection_engine(temporary_path)
+                try:
+                    prepare_collection_database(engine)
+                finally:
+                    engine.dispose()
+                temporary_path.replace(final_path)
+            except Exception:
+                temporary_path.unlink(missing_ok=True)
+                raise
+
+            created_at = datetime.now(UTC)
+            try:
+                with self._connect_registry() as connection:
+                    connection.execute(
+                        """INSERT INTO collections
+                           (id, name, normalised_name, database_path, created_at, is_default)
+                           VALUES (?, ?, ?, ?, ?, 0)""",
+                        (
+                            duplicate_id,
+                            name,
+                            normalised_name,
+                            str(final_path),
+                            created_at.isoformat(),
+                        ),
+                    )
+                    connection.commit()
+            except sqlite3.IntegrityError as exc:
+                final_path.unlink(missing_ok=True)
+                raise CollectionNameConflictError(f'A collection named "{name}" already exists') from exc
+
+            return CollectionRecord(duplicate_id, name, final_path, created_at, False)
+
+    def delete_collection(self, collection_id: str) -> None:
+        with self._lock:
+            record = self.get_collection(collection_id)
+            with self._connect_registry() as connection:
+                count = connection.execute("SELECT COUNT(*) FROM collections").fetchone()[0]
+                if count == 1:
+                    raise LastCollectionDeletionError("The only collection cannot be deleted")
+                if record.is_default:
+                    replacement = connection.execute(
+                        """SELECT id FROM collections WHERE id != ?
+                           ORDER BY created_at ASC, name COLLATE NOCASE ASC LIMIT 1""",
+                        (collection_id,),
+                    ).fetchone()
+                    # Clear the old flag before setting the new one to satisfy the unique index.
+                    connection.execute(
+                        "UPDATE collections SET is_default = 0 WHERE id = ?",
+                        (collection_id,),
+                    )
+                    connection.execute(
+                        "UPDATE collections SET is_default = 1 WHERE id = ?",
+                        (replacement["id"],),
+                    )
+                connection.execute("DELETE FROM collections WHERE id = ?", (collection_id,))
+                connection.commit()
+
+            engine = self._engines.pop(collection_id, None)
+            if engine is not None:
+                engine.dispose()
+            record.database_path.unlink(missing_ok=True)
 
     def get_engine(self, collection_id: str | None = None) -> Engine:
         record = self.get_collection(collection_id)
@@ -239,6 +341,26 @@ class CollectionManager:
         connection = sqlite3.connect(self.registry_path)
         connection.row_factory = sqlite3.Row
         return connection
+
+    def _ensure_name_available(
+        self,
+        name: str,
+        normalised_name: str,
+        excluding_id: str | None = None,
+    ) -> None:
+        with self._connect_registry() as connection:
+            if excluding_id is None:
+                row = connection.execute(
+                    "SELECT 1 FROM collections WHERE normalised_name = ?",
+                    (normalised_name,),
+                ).fetchone()
+            else:
+                row = connection.execute(
+                    "SELECT 1 FROM collections WHERE normalised_name = ? AND id != ?",
+                    (normalised_name, excluding_id),
+                ).fetchone()
+        if row is not None:
+            raise CollectionNameConflictError(f'A collection named "{name}" already exists')
 
     @staticmethod
     def _record_from_row(row: sqlite3.Row) -> CollectionRecord:

@@ -5,7 +5,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { createCollection, listCollections, setApiCollectionId } from "../api/client";
+import {
+  createCollection,
+  deleteCollection,
+  duplicateCollection,
+  listCollections,
+  renameCollection,
+  setApiCollectionId,
+} from "../api/client";
 import type { CollectionOut } from "../api/types";
 import { CollectionContext } from "./useCollection";
 
@@ -60,6 +67,42 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const rename = useCallback(async (collectionId: string, name: string) => {
+    const renamed = await renameCollection(collectionId, name);
+    setCollections((current) =>
+      current.map((collection) => (collection.id === collectionId ? renamed : collection)),
+    );
+    return renamed;
+  }, []);
+
+  const duplicate = useCallback(async (collectionId: string, name: string) => {
+    const created = await duplicateCollection(collectionId, name);
+    setCollections((current) => [...current, created]);
+    return created;
+  }, []);
+
+  const remove = useCallback(
+    async (collectionId: string) => {
+      await deleteCollection(collectionId);
+      const deleted = collections.find((collection) => collection.id === collectionId);
+      let remaining = collections.filter((collection) => collection.id !== collectionId);
+      if (deleted?.is_default && remaining.length > 0) {
+        // The registry promotes the oldest remaining collection, which is also first in this list.
+        const promotedId = remaining[0].id;
+        remaining = remaining.map((collection) => ({
+          ...collection,
+          is_default: collection.id === promotedId,
+        }));
+      }
+      setCollections(remaining);
+      if (collectionId === activeId) {
+        const next = remaining.find((collection) => collection.is_default) ?? remaining[0];
+        if (next) activate(next.id);
+      }
+    },
+    [activate, activeId, collections],
+  );
+
   const activeCollection = collections.find((collection) => collection.id === activeId);
   if (loadError) {
     return (
@@ -85,7 +128,15 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  const value = { collections, activeCollection, selectCollection: activate, addCollection };
+  const value = {
+    collections,
+    activeCollection,
+    selectCollection: activate,
+    addCollection,
+    renameCollection: rename,
+    duplicateCollection: duplicate,
+    removeCollection: remove,
+  };
 
   return (
     <CollectionContext.Provider value={value}>

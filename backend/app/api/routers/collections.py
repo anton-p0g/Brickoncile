@@ -1,8 +1,17 @@
 from fastapi import APIRouter, HTTPException, status
 
 from app.api.dependencies import CollectionManagerDep
-from app.api.schemas import CollectionCreateRequest, CollectionOut
-from app.domain.errors import CollectionNameConflictError, InvalidCollectionNameError
+from app.api.schemas import (
+    CollectionCreateRequest,
+    CollectionNameRequest,
+    CollectionOut,
+)
+from app.domain.errors import (
+    CollectionNameConflictError,
+    CollectionNotFoundError,
+    InvalidCollectionNameError,
+    LastCollectionDeletionError,
+)
 from app.infrastructure.db.collection_manager import CollectionRecord
 
 router = APIRouter(prefix="/api/collections", tags=["collections"])
@@ -22,6 +31,50 @@ def create_collection(body: CollectionCreateRequest, collection_manager: Collect
     except CollectionNameConflictError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return _to_output(record)
+
+
+@router.patch("/{collection_id}")
+def rename_collection(
+    collection_id: str,
+    body: CollectionNameRequest,
+    collection_manager: CollectionManagerDep,
+) -> CollectionOut:
+    try:
+        record = collection_manager.rename_collection(collection_id, body.name)
+    except CollectionNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except InvalidCollectionNameError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except CollectionNameConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return _to_output(record)
+
+
+@router.post("/{collection_id}/duplicate", status_code=status.HTTP_201_CREATED)
+def duplicate_collection(
+    collection_id: str,
+    body: CollectionNameRequest,
+    collection_manager: CollectionManagerDep,
+) -> CollectionOut:
+    try:
+        record = collection_manager.duplicate_collection(collection_id, body.name)
+    except CollectionNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except InvalidCollectionNameError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except CollectionNameConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return _to_output(record)
+
+
+@router.delete("/{collection_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_collection(collection_id: str, collection_manager: CollectionManagerDep) -> None:
+    try:
+        collection_manager.delete_collection(collection_id)
+    except CollectionNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except LastCollectionDeletionError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 def _to_output(record: CollectionRecord) -> CollectionOut:

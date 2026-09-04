@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 interface ConfirmDialogProps {
   title: string;
@@ -7,15 +7,28 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   isPending?: boolean;
+  requiredConfirmationText?: string;
 }
 
-/** Modal confirmation for an irreversible action. Cancel takes initial focus deliberately. */
-export function ConfirmDialog({ title, body, confirmLabel, onConfirm, onCancel, isPending }: ConfirmDialogProps) {
+/** Modal confirmation for an irreversible action. Typed confirmations focus the required field;
+ *  simpler confirmations put initial focus on Cancel. */
+export function ConfirmDialog({
+  title,
+  body,
+  confirmLabel,
+  onConfirm,
+  onCancel,
+  isPending,
+  requiredConfirmationText,
+}: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const confirmationRef = useRef<HTMLInputElement>(null);
+  const [confirmationText, setConfirmationText] = useState("");
 
   useEffect(() => {
-    cancelRef.current?.focus();
-  }, []);
+    if (requiredConfirmationText !== undefined) confirmationRef.current?.focus();
+    else cancelRef.current?.focus();
+  }, [requiredConfirmationText]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -42,6 +55,20 @@ export function ConfirmDialog({ title, body, confirmLabel, onConfirm, onCancel, 
           {title}
         </h2>
         <div className="mt-1.5 text-sm text-gray-600">{body}</div>
+        {requiredConfirmationText !== undefined && (
+          <label className="mt-3 block text-sm font-medium text-gray-700">
+            Type <span className="font-semibold text-gray-900">{requiredConfirmationText}</span> to confirm
+            <input
+              ref={confirmationRef}
+              value={confirmationText}
+              onChange={(event) => setConfirmationText(event.target.value)}
+              disabled={isPending}
+              autoComplete="off"
+              spellCheck={false}
+              className="ui-field mt-1 w-full px-3 py-2 text-sm font-normal"
+            />
+          </label>
+        )}
         <div className="mt-4 flex justify-end gap-2">
           <button
             ref={cancelRef}
@@ -54,7 +81,10 @@ export function ConfirmDialog({ title, body, confirmLabel, onConfirm, onCancel, 
           <button
             type="button"
             onClick={onConfirm}
-            disabled={isPending}
+            disabled={
+              isPending ||
+              (requiredConfirmationText !== undefined && confirmationText !== requiredConfirmationText)
+            }
             className="ui-control ui-control-md border-red-600 bg-red-600 font-semibold text-white hover:border-red-700 hover:bg-red-700"
           >
             {isPending ? "Working..." : confirmLabel}

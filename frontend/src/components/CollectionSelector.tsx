@@ -1,52 +1,25 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCollection } from "../contexts/useCollection";
+import { CollectionManagerDialog } from "./CollectionManagerDialog";
 
 const CREATE_VALUE = "__create_collection__";
+const MANAGE_VALUE = "__manage_collections__";
 
 export function CollectionSelector() {
-  const { collections, activeCollection, selectCollection, addCollection } = useCollection();
-  const [showCreate, setShowCreate] = useState(false);
-  const [name, setName] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { collections, activeCollection, selectCollection } = useCollection();
+  const [dialogView, setDialogView] = useState<"create" | "manage" | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    if (showCreate) inputRef.current?.focus();
-  }, [showCreate]);
-
-  useEffect(() => {
-    if (!showCreate) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !isCreating) setShowCreate(false);
-    };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [showCreate, isCreating]);
-
-  function switchCollection(collectionId: string) {
+  function leaveCollectionDetail() {
     if (location.pathname.startsWith("/sets/")) navigate("/sets");
     if (location.pathname.startsWith("/minifigs/")) navigate("/minifigs");
-    selectCollection(collectionId);
   }
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setIsCreating(true);
-    try {
-      const created = await addCollection(name);
-      setName("");
-      setShowCreate(false);
-      setIsCreating(false);
-      switchCollection(created.id);
-    } catch (caught: unknown) {
-      setError(caught instanceof Error ? caught.message : "Could not create the collection");
-      setIsCreating(false);
-    }
+  function switchCollection(collectionId: string) {
+    leaveCollectionDetail();
+    selectCollection(collectionId);
   }
 
   return (
@@ -58,8 +31,9 @@ export function CollectionSelector() {
           value={activeCollection.id}
           onChange={(event) => {
             if (event.target.value === CREATE_VALUE) {
-              setError(null);
-              setShowCreate(true);
+              setDialogView("create");
+            } else if (event.target.value === MANAGE_VALUE) {
+              setDialogView("manage");
             } else {
               switchCollection(event.target.value);
             }
@@ -73,60 +47,17 @@ export function CollectionSelector() {
           ))}
           <option disabled>──────────</option>
           <option value={CREATE_VALUE}>Create new collection...</option>
+          <option value={MANAGE_VALUE}>Manage collections...</option>
         </select>
       </label>
 
-      {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button
-            type="button"
-            aria-label="Cancel creating collection"
-            onClick={() => !isCreating && setShowCreate(false)}
-            className="absolute inset-0 bg-gray-900/40"
-          />
-          <form
-            onSubmit={submit}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-collection-title"
-            className="relative w-full max-w-sm rounded border border-gray-300 bg-white p-4 shadow-xl"
-          >
-            <h2 id="create-collection-title" className="text-base font-bold">
-              Create collection
-            </h2>
-            <label className="mt-3 block text-sm font-medium text-gray-700">
-              Name
-              <input
-                ref={inputRef}
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                required
-                maxLength={50}
-                disabled={isCreating}
-                placeholder="For example, Test Collection"
-                className="ui-field mt-1 w-full px-3 py-2 text-sm font-normal"
-              />
-            </label>
-            {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setShowCreate(false)}
-                disabled={isCreating}
-                className="ui-control ui-control-secondary ui-control-md"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isCreating || !name.trim()}
-                className="ui-control ui-control-primary ui-control-md font-semibold"
-              >
-                {isCreating ? "Creating..." : "Create"}
-              </button>
-            </div>
-          </form>
-        </div>
+      {dialogView && (
+        <CollectionManagerDialog
+          initialView={dialogView}
+          onClose={() => setDialogView(null)}
+          onCollectionCreated={switchCollection}
+          onActiveCollectionRemoved={leaveCollectionDetail}
+        />
       )}
     </>
   );

@@ -77,6 +77,26 @@ export function createCollection(name: string) {
   });
 }
 
+export function renameCollection(collectionId: string, name: string) {
+  return apiFetch<CollectionOut>(`/collections/${encodeURIComponent(collectionId)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export function duplicateCollection(collectionId: string, name: string) {
+  return apiFetch<CollectionOut>(`/collections/${encodeURIComponent(collectionId)}/duplicate`, {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export function deleteCollection(collectionId: string) {
+  return apiFetch<void>(`/collections/${encodeURIComponent(collectionId)}`, {
+    method: "DELETE",
+  });
+}
+
 // ---- Sets ----
 
 export function listSets() {

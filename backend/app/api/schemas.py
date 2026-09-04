@@ -44,6 +44,10 @@ class CollectionCreateRequest(BaseModel):
     name: str
 
 
+class CollectionNameRequest(BaseModel):
+    name: str
+
+
 class CollectionOut(BaseModel):
     id: str
     name: str
